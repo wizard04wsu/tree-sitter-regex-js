@@ -1,5 +1,5 @@
 {
-	"name": "tree-sitter-regex-js",
+	"name": "@wizard04wsu/tree-sitter-regex-js",
 	"version": "0.0.0",
 	"description": "JavaScript regular expression grammar",
 	"main": "index.js",
@@ -12,7 +12,6 @@
 	"author": "Andy Harrison",
 	"license": "MIT",
 	"devDependencies": {
-		"electron-rebuild": "^1.8.8",
 		"tree-sitter-cli": "^0.15.14"
 	},
 	"dependencies": {
