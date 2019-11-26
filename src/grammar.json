@@ -255,20 +255,20 @@
           "type": "SEQ",
           "members": [
             {
-              "type": "ALIAS",
-              "content": {
-                "type": "STRING",
-                "value": "{"
-              },
-              "named": true,
-              "value": "count_quantifier_begin"
+              "type": "STRING",
+              "value": "{"
             },
             {
               "type": "SEQ",
               "members": [
                 {
-                  "type": "PATTERN",
-                  "value": "[0-9]+"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "PATTERN",
+                    "value": "[0-9]+"
+                  },
+                  "named": true,
+                  "value": "count_quantifier_value"
                 },
                 {
                   "type": "CHOICE",
@@ -289,8 +289,13 @@
                           "type": "CHOICE",
                           "members": [
                             {
-                              "type": "PATTERN",
-                              "value": "[0-9]+"
+                              "type": "ALIAS",
+                              "content": {
+                                "type": "PATTERN",
+                                "value": "[0-9]+"
+                              },
+                              "named": true,
+                              "value": "count_quantifier_value"
                             },
                             {
                               "type": "BLANK"
@@ -307,13 +312,8 @@
               ]
             },
             {
-              "type": "ALIAS",
-              "content": {
-                "type": "STRING",
-                "value": "}"
-              },
-              "named": true,
-              "value": "count_quantifier_end"
+              "type": "STRING",
+              "value": "}"
             }
           ]
         },
@@ -515,26 +515,8 @@
           "name": "group_begin"
         },
         {
-          "type": "ALIAS",
-          "content": {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "STRING",
-                "value": "?<"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "group_name"
-              },
-              {
-                "type": "STRING",
-                "value": ">"
-              }
-            ]
-          },
-          "named": true,
-          "value": "named_capturing_group_identifier"
+          "type": "SYMBOL",
+          "name": "named_capturing_group_identifier"
         },
         {
           "type": "CHOICE",
@@ -551,6 +533,23 @@
         {
           "type": "SYMBOL",
           "name": "group_end"
+        }
+      ]
+    },
+    "named_capturing_group_identifier": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "?<"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "group_name"
+        },
+        {
+          "type": "STRING",
+          "value": ">"
         }
       ]
     },
@@ -783,43 +782,52 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "SYMBOL",
-          "name": "_set_character"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "character_escape"
-        },
-        {
-          "type": "ALIAS",
+          "type": "PREC",
+          "value": 1,
           "content": {
-            "type": "STRING",
-            "value": "\\b"
-          },
-          "named": true,
-          "value": "special_escape"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "character_class_escape"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "set_octal_escape"
-          },
-          "named": true,
-          "value": "octal_escape"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "set_identity_escape"
-          },
-          "named": true,
-          "value": "identity_escape"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_set_character"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "character_escape"
+              },
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "STRING",
+                  "value": "\\b"
+                },
+                "named": true,
+                "value": "special_escape"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "character_class_escape"
+              },
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "set_octal_escape"
+                },
+                "named": true,
+                "value": "octal_escape"
+              },
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "set_identity_escape"
+                },
+                "named": true,
+                "value": "identity_escape"
+              }
+            ]
+          }
         }
       ]
     },
@@ -871,15 +879,15 @@
         },
         {
           "type": "SYMBOL",
-          "name": "control_letter_escape"
+          "name": "control_letter_escape_or_fallback"
         },
         {
           "type": "SYMBOL",
-          "name": "hexadecimal_escape"
+          "name": "hexadecimal_escape_or_fallback"
         },
         {
           "type": "SYMBOL",
-          "name": "unicode_escape"
+          "name": "unicode_escape_or_fallback"
         },
         {
           "type": "SYMBOL",
@@ -926,12 +934,34 @@
         }
       ]
     },
+    "unicode_escape_or_fallback": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "unicode_escape"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "unicode_fallback"
+          },
+          "named": true,
+          "value": "identity_escape"
+        }
+      ]
+    },
     "unicode_escape": {
       "type": "SEQ",
       "members": [
         {
           "type": "STRING",
-          "value": "\\u"
+          "value": "\\"
+        },
+        {
+          "type": "STRING",
+          "value": "u"
         },
         {
           "type": "ALIAS",
@@ -944,12 +974,47 @@
         }
       ]
     },
+    "unicode_fallback": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "escape_operator"
+        },
+        {
+          "type": "STRING",
+          "value": "u"
+        }
+      ]
+    },
+    "hexadecimal_escape_or_fallback": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "hexadecimal_escape"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "hexadecimal_fallback"
+          },
+          "named": true,
+          "value": "identity_escape"
+        }
+      ]
+    },
     "hexadecimal_escape": {
       "type": "SEQ",
       "members": [
         {
           "type": "STRING",
-          "value": "\\x"
+          "value": "\\"
+        },
+        {
+          "type": "STRING",
+          "value": "x"
         },
         {
           "type": "ALIAS",
@@ -962,12 +1027,42 @@
         }
       ]
     },
+    "hexadecimal_fallback": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "escape_operator"
+        },
+        {
+          "type": "STRING",
+          "value": "x"
+        }
+      ]
+    },
+    "control_letter_escape_or_fallback": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "control_letter_escape"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "control_letter_fallback"
+        }
+      ]
+    },
     "control_letter_escape": {
       "type": "SEQ",
       "members": [
         {
           "type": "STRING",
-          "value": "\\c"
+          "value": "\\"
+        },
+        {
+          "type": "STRING",
+          "value": "c"
         },
         {
           "type": "ALIAS",
@@ -977,6 +1072,19 @@
           },
           "named": true,
           "value": "control_letter_code"
+        }
+      ]
+    },
+    "control_letter_fallback": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "\\"
+        },
+        {
+          "type": "STRING",
+          "value": "c"
         }
       ]
     },
@@ -1014,7 +1122,20 @@
     }
   },
   "extras": [],
-  "conflicts": [],
+  "conflicts": [
+    [
+      "unicode_escape",
+      "escape_operator"
+    ],
+    [
+      "hexadecimal_escape",
+      "escape_operator"
+    ],
+    [
+      "control_letter_escape",
+      "escape_operator"
+    ]
+  ],
   "externals": [
     {
       "type": "SYMBOL",
@@ -1026,7 +1147,11 @@
     "unit",
     "quantifier",
     "set_atom",
-    "character_escape"
+    "character_escape",
+    "unicode_escape_or_fallback",
+    "hexadecimal_escape_or_fallback",
+    "control_letter_escape_or_fallback",
+    "control_letter_fallback"
   ],
   "supertypes": []
 }

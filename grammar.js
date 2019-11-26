@@ -22,12 +22,15 @@ module.exports = grammar({
 	name: 'regex',
 	
 	externals: $ => [
-		$.null_character	// \0 \00  (neither followed by 0-7)  \000
+		$.null_character	// \0 \00  (neither followed by 1-7)  \000
 	],
 	
 	extras: $ => [],
 	
 	conflicts: $ => [
+		[ $.unicode_escape, $.escape_operator ],
+		[ $.hexadecimal_escape, $.escape_operator ],
+		[ $.control_letter_escape, $.escape_operator ]
 	],
 	
 	inline: $ => [
@@ -35,9 +38,11 @@ module.exports = grammar({
 		$.unit,
 		$.quantifier,
 		$.set_atom,
-		//$.set_octal_escape,
-		//$.set_identity_escape,
-		$.character_escape
+		$.character_escape,
+		$.unicode_escape_or_fallback,
+		$.hexadecimal_escape_or_fallback,
+		$.control_letter_escape_or_fallback,
+		$.control_letter_fallback
 	],
 	
 	rules: {
@@ -64,7 +69,7 @@ module.exports = grammar({
 			$.end_assertion,							// $
 			$.boundary_assertion,						// \b
 			$.non_boundary_assertion,					// \B
-			$.character_escape,							// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__
+			$.character_escape,							// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__ or fallbacks as identity escapes: \x \u
 			$.character_class_escape,					// \d \D \s \S \w \W
 			$.backreference_escape,						// \1 ... \9 \1__ ... \9__ \k<__>
 			alias($.character_set, $.character_class),	// [__] [^__]
@@ -128,9 +133,14 @@ module.exports = grammar({
 		
 		named_capturing_group: $ => seq(
 			$.group_begin,
-			alias(seq('?<', $.group_name, '>'), $.named_capturing_group_identifier),
+			$.named_capturing_group_identifier,
 			optional($.pattern),
 			$.group_end
+		),
+		named_capturing_group_identifier: $ => seq(
+			'?<',
+			$.group_name,
+			'>'
 		),
 		
 		// TODO: This seems to match what Chrome allows for group names, but make this match the spec.
@@ -227,9 +237,9 @@ module.exports = grammar({
 		
 		character_escape: $ => choice(
 			$.special_escape,
-			$.control_letter_escape,
-			$.hexadecimal_escape,
-			$.unicode_escape,
+			$.control_letter_escape_or_fallback,
+			$.hexadecimal_escape_or_fallback,
+			$.unicode_escape_or_fallback,
 			$.octal_escape,
 			$.identity_escape,
 			$.null_character
@@ -246,19 +256,46 @@ module.exports = grammar({
 			alias(/0?[1-7]|[1-7][0-7]/, $.octal_code)
 		),
 		
+		unicode_escape_or_fallback: $ => choice(
+			$.unicode_escape,
+			alias($.unicode_fallback, $.identity_escape)
+		),
 		unicode_escape: $ => seq(
-			'\\u',
+			'\\',
+			'u',
 			alias(/[a-fA-F0-9]{4}/, $.unicode_code)
 		),
-		
-		hexadecimal_escape: $ => seq(
-			'\\x',
-			alias(/[a-fA-F0-9]{2}/, $.hexadecimal_code)
+		unicode_fallback: $ => seq(
+			$.escape_operator,
+			'u'
 		),
 		
+		hexadecimal_escape_or_fallback: $ => choice(
+			$.hexadecimal_escape,
+			alias($.hexadecimal_fallback, $.identity_escape)
+		),
+		hexadecimal_escape: $ => seq(
+			'\\',
+			'x',
+			alias(/[a-fA-F0-9]{2}/, $.hexadecimal_code)
+		),
+		hexadecimal_fallback: $ => seq(
+			$.escape_operator,
+			'x'
+		),
+		
+		control_letter_escape_or_fallback: $ => choice(
+			$.control_letter_escape,
+			$.control_letter_fallback
+		),
 		control_letter_escape: $ => seq(
-			'\\c',
+			'\\',
+			'c',
 			alias(/[a-zA-Z]/, $.control_letter_code)
+		),
+		control_letter_fallback: $ => seq(
+			'\\',
+			'c'
 		),
 		
 		special_escape: $ => /\\[fnrtv]/,

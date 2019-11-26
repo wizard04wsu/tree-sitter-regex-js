@@ -21,7 +21,7 @@ bool tree_sitter_regex_external_scanner_scan(
 ) {
 	if (valid_symbols[NULL_CHAR] && lexer->lookahead == '\\') {
 		int zeroCount;
-		for (zeroCount=0; zeroCount<3; zeroCount++) {
+		for (zeroCount=0; zeroCount<=3; zeroCount++) {
 			advance(lexer);
 			if (lexer->lookahead != '0') {
 				break;
