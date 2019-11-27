@@ -28,9 +28,9 @@ module.exports = grammar({
 	extras: $ => [],
 	
 	conflicts: $ => [
-		[ $.unicode_escape, $.escape_operator ],
-		[ $.hexadecimal_escape, $.escape_operator ],
-		[ $.control_letter_escape, $.escape_operator ]
+		[ $.unicode_escape, $._escape_operator ],
+		[ $.hexadecimal_escape, $._escape_operator ],
+		[ $.control_letter_escape, $._escape_operator ]
 	],
 	
 	inline: $ => [
@@ -41,8 +41,7 @@ module.exports = grammar({
 		$.character_escape,
 		$.unicode_escape_or_fallback,
 		$.hexadecimal_escape_or_fallback,
-		$.control_letter_escape_or_fallback,
-		$.control_letter_fallback
+		$.control_letter_escape_or_fallback
 	],
 	
 	rules: {
@@ -63,13 +62,13 @@ module.exports = grammar({
 		disjunction_delimiter: $ => '|',
 		
 		unit: $ => choice(
-			$._pattern_character,						// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+			$.non_syntax_characters,					// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 			$.any_character,							// .
 			$.start_assertion,							// ^
 			$.end_assertion,							// $
 			$.boundary_assertion,						// \b
 			$.non_boundary_assertion,					// \B
-			$.character_escape,							// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__ or fallbacks as identity escapes: \x \u
+			$.character_escape,							// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__ or invalid escapes \c \x \u
 			$.character_class_escape,					// \d \D \s \S \w \W
 			$.backreference_escape,						// \1 ... \9 \1__ ... \9__ \k<__>
 			alias($.character_set, $.character_class),	// [__] [^__]
@@ -206,7 +205,7 @@ module.exports = grammar({
 		),
 		
 		set_atom: $ => choice(
-			$._set_character,
+			alias($._non_syntax_set_characters, $.non_syntax_characters),
 			$.character_escape,
 			alias('\\b', $.special_escape),
 			$.character_class_escape,
@@ -219,11 +218,12 @@ module.exports = grammar({
 			alias(/[1-7]/, $.octal_code)
 		),
 		set_identity_escape: $ => seq(
-			$.escape_operator,
+			alias($._escape_operator, $.escape_operator),
 			/[89]/
 		),
 		
-		_set_character: $ => /[^\\\]\-]/,	// NOT: \ ] -
+		//string of non-syntax characters in a character set
+		_non_syntax_set_characters: $ => /[^\\\]\-]+/,	// NOT: \ ] -
 			
 		
 		//#####  character class escapes  #####
@@ -247,8 +247,8 @@ module.exports = grammar({
 		
 		//escapes that remove any special meaning of a character
 		identity_escape: $ => seq(
-			$.escape_operator,
-			/[^cdDsSwWbfnrtv0-9]/
+			alias($._escape_operator, $.escape_operator),
+			/[^cxudDsSwWbfnrtv0-9]/
 		),
 		
 		octal_escape: $ => seq(
@@ -258,49 +258,49 @@ module.exports = grammar({
 		
 		unicode_escape_or_fallback: $ => choice(
 			$.unicode_escape,
-			alias($.unicode_fallback, $.identity_escape)
+			$.invalid_unicode_escape
 		),
 		unicode_escape: $ => seq(
 			'\\',
 			'u',
 			alias(/[a-fA-F0-9]{4}/, $.unicode_code)
 		),
-		unicode_fallback: $ => seq(
-			$.escape_operator,
+		invalid_unicode_escape: $ => seq(
+			alias($._escape_operator, $.escape_operator),
 			'u'
 		),
 		
 		hexadecimal_escape_or_fallback: $ => choice(
 			$.hexadecimal_escape,
-			alias($.hexadecimal_fallback, $.identity_escape)
+			$.invalid_hexadecimal_escape
 		),
 		hexadecimal_escape: $ => seq(
 			'\\',
 			'x',
 			alias(/[a-fA-F0-9]{2}/, $.hexadecimal_code)
 		),
-		hexadecimal_fallback: $ => seq(
-			$.escape_operator,
+		invalid_hexadecimal_escape: $ => seq(
+			alias($._escape_operator, $.escape_operator),
 			'x'
 		),
 		
 		control_letter_escape_or_fallback: $ => choice(
 			$.control_letter_escape,
-			$.control_letter_fallback
+			$.invalid_control_letter_escape
 		),
 		control_letter_escape: $ => seq(
 			'\\',
 			'c',
 			alias(/[a-zA-Z]/, $.control_letter_code)
 		),
-		control_letter_fallback: $ => seq(
-			'\\',
+		invalid_control_letter_escape: $ => seq(
+			$._escape_operator,	//TODO: I don't understand why just putting '\\' here makes this have priority over $.control_letter_escape when inside a character set
 			'c'
 		),
 		
 		special_escape: $ => /\\[fnrtv]/,
 		
-		escape_operator: $ => '\\',
+		_escape_operator: $ => '\\',
 		
 		
 		//#####  boundary assertions  #####
@@ -317,7 +317,7 @@ module.exports = grammar({
 		
 		any_character: $ => '.',
 		
-		//non-syntax characters
-		_pattern_character: $ => /[^\^$\\.*+?()\[\]{}|\/\n]/	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+		//string of non-syntax characters
+		non_syntax_characters: $ => /[^\^$\\.*+?()\[\]{}|\/\n]+/	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 	}
 })

@@ -76,7 +76,7 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "_pattern_character"
+          "name": "non_syntax_characters"
         },
         {
           "type": "SYMBOL",
@@ -782,52 +782,48 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "PREC",
-          "value": 1,
+          "type": "ALIAS",
           "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "_set_character"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "character_escape"
-              },
-              {
-                "type": "ALIAS",
-                "content": {
-                  "type": "STRING",
-                  "value": "\\b"
-                },
-                "named": true,
-                "value": "special_escape"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "character_class_escape"
-              },
-              {
-                "type": "ALIAS",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "set_octal_escape"
-                },
-                "named": true,
-                "value": "octal_escape"
-              },
-              {
-                "type": "ALIAS",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "set_identity_escape"
-                },
-                "named": true,
-                "value": "identity_escape"
-              }
-            ]
-          }
+            "type": "SYMBOL",
+            "name": "_non_syntax_set_characters"
+          },
+          "named": true,
+          "value": "non_syntax_characters"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "character_escape"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "STRING",
+            "value": "\\b"
+          },
+          "named": true,
+          "value": "special_escape"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "character_class_escape"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "set_octal_escape"
+          },
+          "named": true,
+          "value": "octal_escape"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "set_identity_escape"
+          },
+          "named": true,
+          "value": "identity_escape"
         }
       ]
     },
@@ -853,8 +849,13 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "SYMBOL",
-          "name": "escape_operator"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_escape_operator"
+          },
+          "named": true,
+          "value": "escape_operator"
         },
         {
           "type": "PATTERN",
@@ -862,9 +863,9 @@
         }
       ]
     },
-    "_set_character": {
+    "_non_syntax_set_characters": {
       "type": "PATTERN",
-      "value": "[^\\\\\\]\\-]"
+      "value": "[^\\\\\\]\\-]+"
     },
     "character_class_escape": {
       "type": "PATTERN",
@@ -907,12 +908,17 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "SYMBOL",
-          "name": "escape_operator"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_escape_operator"
+          },
+          "named": true,
+          "value": "escape_operator"
         },
         {
           "type": "PATTERN",
-          "value": "[^cdDsSwWbfnrtv0-9]"
+          "value": "[^cxudDsSwWbfnrtv0-9]"
         }
       ]
     },
@@ -942,13 +948,8 @@
           "name": "unicode_escape"
         },
         {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "unicode_fallback"
-          },
-          "named": true,
-          "value": "identity_escape"
+          "type": "SYMBOL",
+          "name": "invalid_unicode_escape"
         }
       ]
     },
@@ -974,12 +975,17 @@
         }
       ]
     },
-    "unicode_fallback": {
+    "invalid_unicode_escape": {
       "type": "SEQ",
       "members": [
         {
-          "type": "SYMBOL",
-          "name": "escape_operator"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_escape_operator"
+          },
+          "named": true,
+          "value": "escape_operator"
         },
         {
           "type": "STRING",
@@ -995,13 +1001,8 @@
           "name": "hexadecimal_escape"
         },
         {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "hexadecimal_fallback"
-          },
-          "named": true,
-          "value": "identity_escape"
+          "type": "SYMBOL",
+          "name": "invalid_hexadecimal_escape"
         }
       ]
     },
@@ -1027,12 +1028,17 @@
         }
       ]
     },
-    "hexadecimal_fallback": {
+    "invalid_hexadecimal_escape": {
       "type": "SEQ",
       "members": [
         {
-          "type": "SYMBOL",
-          "name": "escape_operator"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_escape_operator"
+          },
+          "named": true,
+          "value": "escape_operator"
         },
         {
           "type": "STRING",
@@ -1049,7 +1055,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "control_letter_fallback"
+          "name": "invalid_control_letter_escape"
         }
       ]
     },
@@ -1075,12 +1081,12 @@
         }
       ]
     },
-    "control_letter_fallback": {
+    "invalid_control_letter_escape": {
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "\\"
+          "type": "SYMBOL",
+          "name": "_escape_operator"
         },
         {
           "type": "STRING",
@@ -1092,7 +1098,7 @@
       "type": "PATTERN",
       "value": "\\\\[fnrtv]"
     },
-    "escape_operator": {
+    "_escape_operator": {
       "type": "STRING",
       "value": "\\"
     },
@@ -1116,24 +1122,24 @@
       "type": "STRING",
       "value": "."
     },
-    "_pattern_character": {
+    "non_syntax_characters": {
       "type": "PATTERN",
-      "value": "[^\\^$\\\\.*+?()\\[\\]{}|\\/\\n]"
+      "value": "[^\\^$\\\\.*+?()\\[\\]{}|\\/\\n]+"
     }
   },
   "extras": [],
   "conflicts": [
     [
       "unicode_escape",
-      "escape_operator"
+      "_escape_operator"
     ],
     [
       "hexadecimal_escape",
-      "escape_operator"
+      "_escape_operator"
     ],
     [
       "control_letter_escape",
-      "escape_operator"
+      "_escape_operator"
     ]
   ],
   "externals": [
@@ -1150,8 +1156,7 @@
     "character_escape",
     "unicode_escape_or_fallback",
     "hexadecimal_escape_or_fallback",
-    "control_letter_escape_or_fallback",
-    "control_letter_fallback"
+    "control_letter_escape_or_fallback"
   ],
   "supertypes": []
 }
