@@ -1,6 +1,6 @@
 {
 	"name": "tree-sitter-regex-js",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"description": "JavaScript regular expression grammar",
 	"main": "index.js",
 	"repository": "https://github.com/wizard04wsu/tree-sitter-regex-js",
