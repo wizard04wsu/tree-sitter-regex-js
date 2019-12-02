@@ -30,18 +30,22 @@ module.exports = grammar({
 	conflicts: $ => [
 		[ $.unicode_escape, $._escape_operator ],
 		[ $.hexadecimal_escape, $._escape_operator ],
-		[ $.control_letter_escape, $._escape_operator ]
+		[ $.control_letter_escape, $._escape_operator ],
 	],
 	
 	inline: $ => [
 		$.pattern,
 		$.unit,
 		$.quantifier,
+		//$._invalid_quantifier,
+		//$._invalid_secondary_quantifier,
+		$.set_unit,
 		$.set_atom,
 		$.character_escape,
-		$.unicode_escape_or_fallback,
-		$.hexadecimal_escape_or_fallback,
-		$.control_letter_escape_or_fallback,
+		$._invalid_character_escape,
+		//$._invalid_unicode_escape,
+		//$._invalid_hexadecimal_escape,
+		//$._invalid_control_letter_escape,
 	],
 	
 	rules: {
@@ -50,7 +54,13 @@ module.exports = grammar({
 		pattern: $ => seq(
 			repeat1(seq(
 				$.unit,
-				optional($.quantifier),
+				optional(choice(
+					seq(
+						$.quantifier,
+						optional($._invalid_secondary_quantifier),
+					),
+					$._invalid_quantifier,
+				)),
 			)),
 			optional($.disjunction),
 		),
@@ -62,15 +72,16 @@ module.exports = grammar({
 		disjunction_delimiter: $ => '|',
 		
 		unit: $ => choice(
-			$.non_syntax_character,					// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+			$.non_syntax_character,						// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 			$.any_character,							// .
 			$.start_assertion,							// ^
 			$.end_assertion,							// $
 			$.boundary_assertion,						// \b
 			$.non_boundary_assertion,					// \B
-			$.character_escape,							// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__ or invalid escapes \c \x \u
+			$.character_escape,							// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__
+			$._invalid_character_escape,
 			$.character_class_escape,					// \d \D \s \S \w \W
-			$.backreference,						// \1 ... \9 \1__ ... \9__ \k<__>
+			$.backreference,							// \1 ... \9 \1__ ... \9__ \k<__>
 			alias($.character_set, $.character_class),	// [__] [^__]
 			$.anonymous_capturing_group,				// (__)
 			$.non_capturing_group,						// (?:__)
@@ -78,7 +89,7 @@ module.exports = grammar({
 			$.lookahead_assertion,						// (?=__)
 			$.negative_lookahead_assertion,				// (?!__)
 			$.lookbehind_assertion,						// (?<=__)
-			$.negative_lookbehind_assertion,				// (?<!__)
+			$.negative_lookbehind_assertion,			// (?<!__)
 		),
 		
 		
@@ -90,6 +101,18 @@ module.exports = grammar({
 			$.one_or_more,		// + +?
 			$.optional,			// ? ??
 			$.count_quantifier,	// {__} {__,} {__,__} {__}? {__,}? {__,__}?
+		),
+		_invalid_quantifier: $ => prec.right(choice(
+			/\{[^0-9]/,
+			/\{[0-9]+[^0-9,}]/,
+			/\{[0-9]+,[0-9]*[^0-9}]/,
+		)),
+		_invalid_secondary_quantifier: $ => choice(
+			/[?*+]/,
+			///\{[0-9]+\}/,
+			///\{[0-9]+,[0-9]*\}/,
+			//$._invalid_quantifier,
+			'{',
 		),
 		
 		
@@ -142,18 +165,16 @@ module.exports = grammar({
 		// http://www.unicode.org/reports/tr31/#Table_Lexical_Classes_for_Identifiers
 		group_name: $ => seq(
 			choice(
-				$._name_first_char,
+				/[a-zA-Z0-9_$]/,
 				$.unicode_escape,
 			),
 			repeat(
 				choice(
-					$._name_additional_char,
+					/[a-zA-Z0-9_$\u200C\u200D]/,
 					$.unicode_escape,
 				),
 			),
 		),
-		_name_first_char: $ => /[a-zA-Z0-9_$]/,
-		_name_additional_char: $ => /[a-zA-Z0-9_$\u200C\u200D]/,
 		
 		non_capturing_group: groupRule($ => alias('?:', $.non_capturing_group_identifier)),
 		
@@ -171,31 +192,34 @@ module.exports = grammar({
 			optional(alias('^', $.set_negation)),
 			repeat(
 				prec.right(choice(
-					$.character_range,
+					alias($.set_range, $.character_range),
 					seq(
-						$.set_atom,
-						'-',
+						$.set_unit,
+						optional(alias('-', $.non_syntax_character)),	//otherwise, a hyphen at the end of the character set would be an error (e.g., `[a-]`) - TODO: why is it an error???
 					),
-					$.set_atom,
-					'-',
 				)),
 			),
 			alias(']', $.set_end),
 		),
 		
-		character_range: $ => seq(
-			choice($.set_atom, '-'),
+		set_range: $ => seq(
+			$.set_atom,
 			alias('-', $.range_delimiter),
-			choice($.set_atom, '-'),
+			$.set_atom,
+		),
+		
+		set_unit: $ => choice(
+			$.set_atom,
+			$.character_class_escape,							// \d \D \s \S \w \W
+			$._invalid_character_escape,
 		),
 		
 		set_atom: $ => choice(
 			alias(/[^\\\]]/, $.non_syntax_character),			// NOT: \ ]
-			$.character_escape,
-			alias('\\b', $.special_escape),
-			$.character_class_escape,
-			alias($.set_octal_escape, $.octal_escape),
-			alias($.set_identity_escape, $.identity_escape),
+			$.character_escape,									// \f \n \r \t \v \c__ \x__ \u__ \0__ \0 \__
+			alias('\\b', $.special_escape),						// \b
+			alias($.set_octal_escape, $.octal_escape),			// \1 ... \7
+			alias($.set_identity_escape, $.identity_escape),	// \8 \9
 		),
 		
 		set_octal_escape: $ => seq(
@@ -204,7 +228,7 @@ module.exports = grammar({
 		),
 		set_identity_escape: $ => seq(
 			alias($._escape_operator, $.escape_operator),
-			/[89-]/,
+			/[89]/,
 		),
 			
 		
@@ -218,13 +242,20 @@ module.exports = grammar({
 		
 		
 		character_escape: $ => choice(
-			$.special_escape,
-			$.control_letter_escape_or_fallback,
-			$.hexadecimal_escape_or_fallback,
-			$.unicode_escape_or_fallback,
-			$.octal_escape,
+			prec(1, choice(
+				$.special_escape,
+				$.control_letter_escape,
+				$.hexadecimal_escape,
+				$.unicode_escape,
+				$.octal_escape,
+				$.null_character,
+			)),
 			$.identity_escape,
-			$.null_character,
+		),
+		_invalid_character_escape: $ => choice(
+			alias($._invalid_unicode_escape, $.identity_escape),
+			alias($._invalid_hexadecimal_escape, $.identity_escape),
+			$._invalid_control_letter_escape,
 		),
 		
 		//escapes that remove any special meaning of a character
@@ -238,46 +269,34 @@ module.exports = grammar({
 			alias(/0?[1-7]|[1-7][0-7]/, $.octal_code),
 		),
 		
-		unicode_escape_or_fallback: $ => choice(
-			$.unicode_escape,
-			$.invalid_unicode_escape,
-		),
 		unicode_escape: $ => seq(
 			'\\',
 			'u',
 			alias(/[a-fA-F0-9]{4}/, $.unicode_code),
 		),
-		invalid_unicode_escape: $ => seq(
+		_invalid_unicode_escape: $ => seq(
 			alias($._escape_operator, $.escape_operator),
 			'u',
 		),
 		
-		hexadecimal_escape_or_fallback: $ => choice(
-			$.hexadecimal_escape,
-			$.invalid_hexadecimal_escape,
-		),
 		hexadecimal_escape: $ => seq(
 			'\\',
 			'x',
 			alias(/[a-fA-F0-9]{2}/, $.hexadecimal_code),
 		),
-		invalid_hexadecimal_escape: $ => seq(
+		_invalid_hexadecimal_escape: $ => seq(
 			alias($._escape_operator, $.escape_operator),
 			'x',
 		),
 		
-		control_letter_escape_or_fallback: $ => choice(
-			$.control_letter_escape,
-			$.invalid_control_letter_escape,
-		),
 		control_letter_escape: $ => seq(
 			'\\',
 			'c',
 			alias(/[a-zA-Z]/, $.control_letter_code),
 		),
-		invalid_control_letter_escape: $ => seq(
-			$._escape_operator,	//TODO: I don't understand why just putting '\\' here makes this have priority over $.control_letter_escape when inside a character set
-			'c',
+		_invalid_control_letter_escape: $ => seq(
+			alias($._escape_operator, $.non_syntax_character),
+			alias('c', $.non_syntax_character),
 		),
 		
 		special_escape: $ => /\\[fnrtv]/,
