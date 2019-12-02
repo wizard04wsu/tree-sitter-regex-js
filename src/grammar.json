@@ -108,7 +108,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "backreference_escape"
+          "name": "backreference"
         },
         {
           "type": "ALIAS",
@@ -472,7 +472,7 @@
         }
       ]
     },
-    "backreference_escape": {
+    "backreference": {
       "type": "CHOICE",
       "members": [
         {
@@ -603,8 +603,13 @@
           "name": "group_begin"
         },
         {
-          "type": "SYMBOL",
-          "name": "non_capturing_group_identifier"
+          "type": "ALIAS",
+          "content": {
+            "type": "STRING",
+            "value": "?:"
+          },
+          "named": true,
+          "value": "non_capturing_group_identifier"
         },
         {
           "type": "CHOICE",
@@ -624,16 +629,15 @@
         }
       ]
     },
-    "non_capturing_group_identifier": {
-      "type": "STRING",
-      "value": "?:"
-    },
     "anonymous_capturing_group": {
       "type": "SEQ",
       "members": [
         {
           "type": "SYMBOL",
           "name": "group_begin"
+        },
+        {
+          "type": "BLANK"
         },
         {
           "type": "CHOICE",
