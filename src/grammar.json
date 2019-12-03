@@ -1220,10 +1220,15 @@
     "pattern",
     "unit",
     "quantifier",
+    "_invalid_quantifier",
+    "_invalid_secondary_quantifier",
     "set_unit",
     "set_atom",
     "character_escape",
-    "_invalid_character_escape"
+    "_invalid_character_escape",
+    "_invalid_unicode_escape",
+    "_invalid_hexadecimal_escape",
+    "_invalid_control_letter_escape"
   ],
   "supertypes": []
 }
