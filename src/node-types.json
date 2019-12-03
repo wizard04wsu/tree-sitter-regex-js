@@ -16,7 +16,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -92,6 +92,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -127,7 +131,7 @@
     }
   },
   {
-    "type": "backreference_escape",
+    "type": "backreference",
     "named": true,
     "fields": {},
     "children": {
@@ -175,6 +179,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -214,10 +222,6 @@
       "required": true,
       "types": [
         {
-          "type": "character_class_escape",
-          "named": true
-        },
-        {
           "type": "control_letter_escape",
           "named": true
         },
@@ -227,6 +231,10 @@
         },
         {
           "type": "identity_escape",
+          "named": true
+        },
+        {
+          "type": "non_syntax_character",
           "named": true
         },
         {
@@ -276,15 +284,11 @@
       "required": true,
       "types": [
         {
-          "type": "count_quantifier_begin",
-          "named": true
-        },
-        {
           "type": "count_quantifier_delimiter",
           "named": true
         },
         {
-          "type": "count_quantifier_end",
+          "type": "count_quantifier_value",
           "named": true
         },
         {
@@ -311,7 +315,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -383,6 +387,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -416,11 +424,6 @@
         }
       ]
     }
-  },
-  {
-    "type": "escape_operator",
-    "named": true,
-    "fields": {}
   },
   {
     "type": "group_name",
@@ -484,7 +487,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -564,6 +567,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -615,7 +622,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -695,6 +702,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -746,7 +757,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -826,6 +837,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -865,11 +880,11 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
-      "required": false,
+      "multiple": false,
+      "required": true,
       "types": [
         {
-          "type": "unicode_escape",
+          "type": "group_name",
           "named": true
         }
       ]
@@ -892,7 +907,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -972,6 +987,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -1023,7 +1042,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -1103,6 +1122,10 @@
           "named": true
         },
         {
+          "type": "non_syntax_character",
+          "named": true
+        },
+        {
           "type": "null_character",
           "named": true
         },
@@ -1154,7 +1177,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -1231,6 +1254,10 @@
         },
         {
           "type": "non_capturing_group_identifier",
+          "named": true
+        },
+        {
+          "type": "non_syntax_character",
           "named": true
         },
         {
@@ -1319,7 +1346,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
           "type": "anonymous_capturing_group",
@@ -1330,7 +1357,7 @@
           "named": true
         },
         {
-          "type": "backreference_escape",
+          "type": "backreference",
           "named": true
         },
         {
@@ -1395,6 +1422,10 @@
         },
         {
           "type": "non_capturing_group",
+          "named": true
+        },
+        {
+          "type": "non_syntax_character",
           "named": true
         },
         {
@@ -1476,15 +1507,15 @@
     "named": false
   },
   {
-    "type": "-",
-    "named": false
-  },
-  {
     "type": ">",
     "named": false
   },
   {
     "type": "?",
+    "named": false
+  },
+  {
+    "type": "?<",
     "named": false
   },
   {
@@ -1500,19 +1531,7 @@
     "named": false
   },
   {
-    "type": "\\c",
-    "named": false
-  },
-  {
     "type": "\\k<",
-    "named": false
-  },
-  {
-    "type": "\\u",
-    "named": false
-  },
-  {
-    "type": "\\x",
     "named": false
   },
   {
@@ -1524,6 +1543,10 @@
     "named": true
   },
   {
+    "type": "c",
+    "named": false
+  },
+  {
     "type": "character_class_escape",
     "named": true
   },
@@ -1532,15 +1555,11 @@
     "named": true
   },
   {
-    "type": "count_quantifier_begin",
-    "named": true
-  },
-  {
     "type": "count_quantifier_delimiter",
     "named": true
   },
   {
-    "type": "count_quantifier_end",
+    "type": "count_quantifier_value",
     "named": true
   },
   {
@@ -1592,6 +1611,10 @@
     "named": true
   },
   {
+    "type": "non_syntax_character",
+    "named": true
+  },
+  {
     "type": "octal_code",
     "named": true
   },
@@ -1616,7 +1639,23 @@
     "named": true
   },
   {
+    "type": "u",
+    "named": false
+  },
+  {
     "type": "unicode_code",
     "named": true
+  },
+  {
+    "type": "x",
+    "named": false
+  },
+  {
+    "type": "{",
+    "named": false
+  },
+  {
+    "type": "}",
+    "named": false
   }
 ]
