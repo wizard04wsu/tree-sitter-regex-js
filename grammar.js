@@ -6,7 +6,10 @@ const quantifierRule = prefix => $ => seq(
 const groupRule = identifier => $ => seq(
 	$.group_begin,
 	identifier($),
-	optional($.pattern),
+	optional(choice(
+		$.pattern,
+		$.disjunction,
+	)),
 	$.group_end,
 )
 
@@ -35,6 +38,7 @@ module.exports = grammar({
 	
 	inline: $ => [
 		$.pattern,
+		$.disjunction,
 		$.unit,
 		$.quantifier,
 		$._invalid_quantifier,
@@ -49,25 +53,30 @@ module.exports = grammar({
 	],
 	
 	rules: {
-		regex: $ => $.pattern,
-		
-		pattern: $ => seq(
-			repeat1(seq(
-				$.unit,
-				optional(choice(
-					seq(
-						$.quantifier,
-						optional($._invalid_secondary_quantifier),
-					),
-					$._invalid_quantifier,
-				)),
-			)),
-			optional($.disjunction),
+		regex: $ => choice(
+			$.pattern,
+			$.disjunction,
 		),
 		
+		pattern: $ => repeat1(seq(
+			$.unit,
+			optional(choice(
+				seq(
+					$.quantifier,
+					optional($._invalid_secondary_quantifier),
+				),
+				$._invalid_quantifier,
+			)),
+		)),
+		
 		disjunction: $ => seq(
-			$.disjunction_delimiter,
 			optional($.pattern),
+			repeat1(
+				seq(
+					$.disjunction_delimiter,
+					optional($.pattern),
+				),
+			),
 		),
 		disjunction_delimiter: $ => '|',
 		
