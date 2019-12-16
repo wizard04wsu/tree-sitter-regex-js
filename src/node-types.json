@@ -60,6 +60,10 @@
           "named": true
         },
         {
+          "type": "invalid",
+          "named": true
+        },
+        {
           "type": "lookahead_assertion",
           "named": true
         },
@@ -338,6 +342,29 @@
     }
   },
   {
+    "type": "invalid",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "count_quantifier_delimiter",
+          "named": true
+        },
+        {
+          "type": "count_quantifier_value",
+          "named": true
+        },
+        {
+          "type": "lazy",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "lookahead_assertion",
     "named": true,
     "fields": {},
@@ -395,6 +422,10 @@
         },
         {
           "type": "identity_escape",
+          "named": true
+        },
+        {
+          "type": "invalid",
           "named": true
         },
         {
@@ -534,6 +565,10 @@
         },
         {
           "type": "identity_escape",
+          "named": true
+        },
+        {
+          "type": "invalid",
           "named": true
         },
         {
@@ -691,6 +726,10 @@
           "named": true
         },
         {
+          "type": "invalid",
+          "named": true
+        },
+        {
           "type": "lookahead_assertion",
           "named": true
         },
@@ -845,6 +884,10 @@
           "named": true
         },
         {
+          "type": "invalid",
+          "named": true
+        },
+        {
           "type": "lookahead_assertion",
           "named": true
         },
@@ -981,6 +1024,10 @@
         },
         {
           "type": "identity_escape",
+          "named": true
+        },
+        {
+          "type": "invalid",
           "named": true
         },
         {
@@ -1128,6 +1175,10 @@
           "named": true
         },
         {
+          "type": "invalid",
+          "named": true
+        },
+        {
           "type": "lookahead_assertion",
           "named": true
         },
@@ -1262,7 +1313,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
           "type": "anonymous_capturing_group",
@@ -1306,6 +1357,10 @@
         },
         {
           "type": "identity_escape",
+          "named": true
+        },
+        {
+          "type": "invalid",
           "named": true
         },
         {
