@@ -39,6 +39,7 @@ module.exports = grammar({
 		$.$pattern,
 		$.$quantifier,
 		$.$invalid_extra_quantifier,
+		$.$nonconforming_count_quantifier,
 		$.$repeatable_symbol,
 		$.$backreference,
 		$.$named_backreference_prefix,
@@ -75,23 +76,21 @@ module.exports = grammar({
 				$.$boundary_assertion,
 				seq(
 					$.$repeatable_symbol,
-					optional(seq(
-						$.$quantifier,
-						repeat($.$invalid_extra_quantifier),
-					)),
+					optional($.$quantifier),
 				),
 			),
 		),
 		
 		
 		$repeatable_symbol: $ => choice(
+			alias($._nonconforming_curly_braces, $.non_syntax),	// nonconforming: { }
 			$.$backreference,											// \1 ... \9 \1__ ... \9__ \k<__>   nonconforming: \k
 			$.$group_or_lookaround,										// (__) (?<__>__) (?:__) (?=__) (?!__) (?<=__) (?<!__)   invalid: ( )
 			$.$character_set,											// [__] [^__]   invalid: [ ]
 			$.character_class_escape,									// \d \D \s \S \w \W
 			$.$p_character_escape,										// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__   nonconforming: \c \x \u
 			$.any_character,											// .
-			alias($._p_non_syntax_character, $.non_syntax_character),	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+			alias($._p_non_syntax, $.non_syntax),	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 		),
 		
 		
@@ -99,19 +98,23 @@ module.exports = grammar({
 		
 		
 		$quantifier: $ => choice(
-			$.optional,											// ? ??
-			$.zero_or_more,										// * *?
-			$.one_or_more,										// + +?
-			$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
-			alias($._nonconforming_quantifier_delimiter, $.non_syntax_character),	// nonconforming { }
+			seq(
+				choice(
+					$.optional,											// ? ??
+					$.zero_or_more,										// * *?
+					$.one_or_more,										// + +?
+					$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
+				),
+				repeat($.$invalid_extra_quantifier),
+			),
+			$.$nonconforming_count_quantifier,
 		),
 		
 		$invalid_extra_quantifier: $ => choice(
 			alias(/\?/, $.invalid),
 			alias(/\*/, $.invalid),
 			alias(/\+/, $.invalid),
-			alias(seq(/\{\d+(,\d*)?/,/\}/), $.invalid),
-			alias(/[{}]/, $.non_syntax_character),	// nonconforming { }
+			alias(/\{[0-9]+(,[0-9]*)?\}/, $.invalid),
 		),
 		
 		
@@ -130,15 +133,31 @@ module.exports = grammar({
 			/\}/,
 		)),
 		
-		//make sure this is below $.optional, $.zero_or_more, and $.one_or_more in the code
-		_invalid_extra_quantifier: $ => /[?*+]/,
+		$nonconforming_count_quantifier: $ => alias(choice(
+			seq(
+				/\{/,
+				seq(
+					/[0-9]+/,
+					/,/,
+					/[0-9]+/,
+				),
+			),
+			seq(
+				/\{/,
+				seq(
+					/[0-9]+/,
+					/,/,
+				),
+			),
+			/*seq(
+				/\{/,
+				/[0-9]+/,
+			),*/
+			///\{/,
+			///\{([0-9]+(,[0-9]*)?)?/,
+		), $.non_syntax),
 		
-		//make sure this is below $.count_quantifier in the code
-		_nonconforming_quantifier_delimiter: $ => choice(
-			/\{/,
-			/\}/,
-			/\{\}/,
-		),
+		_nonconforming_curly_braces: $ => /[{}]/,
 		
 		
 		//#####  backreferences  #####
@@ -278,8 +297,8 @@ module.exports = grammar({
 					$.character_range,											// __-__
 					$.character_class_escape,									// \d \D \s \S \w \W
 					$.$s_character_escape,										// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
-					alias($._dash, $.non_syntax_character),						// -
-					alias($._s_non_syntax_character, $.non_syntax_character),	// NOT: - \ ] or newline
+					alias($._dash, $.non_syntax),						// -
+					alias($._s_non_syntax, $.non_syntax),	// NOT: - \ ] or newline
 				),
 			),
 			alias(/\]/, $.set_end),
@@ -300,8 +319,8 @@ module.exports = grammar({
 		
 		$character_range_unit: $ => choice(
 			$.$s_character_escape,										// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
-			alias($._dash, $.non_syntax_character),						// -
-			alias($._s_non_syntax_character, $.non_syntax_character),	// NOT: - \ ] or newline
+			alias($._dash, $.non_syntax),						// -
+			alias($._s_non_syntax_character, $.non_syntax),	// NOT: - \ ] or newline
 		),
 		
 		
@@ -412,8 +431,9 @@ module.exports = grammar({
 		any_character: $ => /\./,
 		
 		
-		_p_non_syntax_character: $ => /[^\^$\\.*+?()\[\]{}|\/\n]/,	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
-		_s_non_syntax_character: $ => /[^-\\\]\n]/,	// NOT: - \ ] or newline
+		_p_non_syntax: $ => /[^\^$\\.*+?()\[\]{}|\/\n]+/,	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+		_s_non_syntax: $ => /[^-\\\]\n]+/,					// NOT: - \ ] or newline
+		_s_non_syntax_character: $ => /[^-\\\]\n]/,			// NOT: - \ ] or newline
 		
 	}
 });

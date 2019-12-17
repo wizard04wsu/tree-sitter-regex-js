@@ -96,7 +96,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -172,7 +172,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -232,7 +232,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -442,7 +442,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -585,7 +585,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -743,7 +743,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -901,7 +901,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -1044,7 +1044,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -1192,7 +1192,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -1373,7 +1373,7 @@
           "named": true
         },
         {
-          "type": "non_syntax_character",
+          "type": "non_syntax",
           "named": true
         },
         {
@@ -1524,7 +1524,7 @@
     "named": true
   },
   {
-    "type": "non_syntax_character",
+    "type": "non_syntax",
     "named": true
   },
   {
