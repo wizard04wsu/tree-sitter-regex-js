@@ -103,14 +103,15 @@ module.exports = grammar({
 			$.zero_or_more,										// * *?
 			$.one_or_more,										// + +?
 			$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
-			alias($._nonconforming_quantifier_delimiter, $.non_syntax_character),	// nonconforming: { } elsewhere
+			alias($._nonconforming_quantifier_delimiter, $.non_syntax_character),	// nonconforming { }
 		),
 		
 		$invalid_extra_quantifier: $ => choice(
-			alias($.optional, $.invalid),
-			alias($.zero_or_more, $.invalid),
-			alias($.one_or_more, $.invalid),
-			alias($.count_quantifier, $.invalid),
+			alias(/\?/, $.invalid),
+			alias(/\*/, $.invalid),
+			alias(/\+/, $.invalid),
+			alias(seq(/\{\d+(,\d*)?/,/\}/), $.invalid),
+			alias(/[{}]/, $.non_syntax_character),	// nonconforming { }
 		),
 		
 		
@@ -133,7 +134,11 @@ module.exports = grammar({
 		_invalid_extra_quantifier: $ => /[?*+]/,
 		
 		//make sure this is below $.count_quantifier in the code
-		_nonconforming_quantifier_delimiter: $ => /[{}]/,
+		_nonconforming_quantifier_delimiter: $ => choice(
+			/\{/,
+			/\}/,
+			/\{\}/,
+		),
 		
 		
 		//#####  backreferences  #####
@@ -262,7 +267,7 @@ module.exports = grammar({
 		
 		$character_set: $ => choice(
 			alias($.character_set, $.character_class),				//renamed to match pre-existing themes
-			alias($._invalid_character_set_delimiter, $.invalid),	// invalid: [ ] elsewhere
+			alias($._invalid_character_set_delimiter, $.invalid),	// invalid [ ]
 		),
 		
 		character_set: $ => seq(

@@ -174,8 +174,8 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "SYMBOL",
-            "name": "optional"
+            "type": "PATTERN",
+            "value": "\\?"
           },
           "named": true,
           "value": "invalid"
@@ -183,8 +183,8 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "SYMBOL",
-            "name": "zero_or_more"
+            "type": "PATTERN",
+            "value": "\\*"
           },
           "named": true,
           "value": "invalid"
@@ -192,8 +192,8 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "SYMBOL",
-            "name": "one_or_more"
+            "type": "PATTERN",
+            "value": "\\+"
           },
           "named": true,
           "value": "invalid"
@@ -201,11 +201,29 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "SYMBOL",
-            "name": "count_quantifier"
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "PATTERN",
+                "value": "\\{\\d+(,\\d*)?"
+              },
+              {
+                "type": "PATTERN",
+                "value": "\\}"
+              }
+            ]
           },
           "named": true,
           "value": "invalid"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "[{}]"
+          },
+          "named": true,
+          "value": "non_syntax_character"
         }
       ]
     },
@@ -380,8 +398,21 @@
       "value": "[?*+]"
     },
     "_nonconforming_quantifier_delimiter": {
-      "type": "PATTERN",
-      "value": "[{}]"
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "\\{"
+        },
+        {
+          "type": "PATTERN",
+          "value": "\\}"
+        },
+        {
+          "type": "PATTERN",
+          "value": "\\{\\}"
+        }
+      ]
     },
     "$backreference": {
       "type": "CHOICE",
