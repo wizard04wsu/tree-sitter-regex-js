@@ -487,6 +487,15 @@
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
+            "name": "$invalid_named_capturing_group_identifier"
+          },
+          "named": true,
+          "value": "invalid"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
             "name": "_invalid_group_delimiter"
           },
           "named": true,
@@ -755,19 +764,18 @@
           "value": "\\?<"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "group_name"
-            }
-          ]
+          "type": "SYMBOL",
+          "name": "group_name"
         },
         {
           "type": "PATTERN",
           "value": ">"
         }
       ]
+    },
+    "$invalid_named_capturing_group_identifier": {
+      "type": "PATTERN",
+      "value": "\\?<>"
     },
     "group_name": {
       "type": "REPEAT1",

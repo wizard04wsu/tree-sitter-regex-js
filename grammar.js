@@ -172,6 +172,7 @@ module.exports = grammar({
 			$.non_capturing_group,									// (?:__)
 			$.named_capturing_group,								// (?<__>__)
 			$.anonymous_capturing_group,							// (__)
+			alias($.$invalid_named_capturing_group_identifier, $.invalid),	// invalid: (?<>__)
 			alias($._invalid_group_delimiter, $.invalid),			// invalid: ( ) elsewhere outside of a character set
 		),
 		
@@ -189,11 +190,10 @@ module.exports = grammar({
 		
 		named_capturing_group_identifier: $ => seq(
 			/\?</,
-			choice(
-				$.group_name,
-			),
+			$.group_name,
 			/>/,
 		),
+		$invalid_named_capturing_group_identifier: $ => /\?<>/,
 		
 		
 		//TODO: Tree-sitter doesn't support Unicode property escapes, so I can't reasonably make this match the spec.
