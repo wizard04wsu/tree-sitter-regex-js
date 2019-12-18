@@ -17,8 +17,9 @@ module.exports = grammar({
 	name: 'regex',
 	
 	externals: $ => [
-		$.null_character,				// \0 \00  (neither followed by 1-7)  \000
+		$.null_character,			// \0 \00  (neither followed by 1-7)  \000
 		$._has_backreference_name,	// (no content) determines if a named backreference ( \k<__> ) includes a valid group name
+		$._begin_count_quantifier,	// matches the left curly brace of a count quantifier
 	],
 	
 	extras: $ => [],
@@ -39,7 +40,6 @@ module.exports = grammar({
 		$.$pattern,
 		$.$quantifier,
 		$.$invalid_extra_quantifier,
-		$.$nonconforming_count_quantifier,
 		$.$repeatable_symbol,
 		$.$backreference,
 		$.$named_backreference_prefix,
@@ -83,46 +83,35 @@ module.exports = grammar({
 		
 		
 		$repeatable_symbol: $ => choice(
-			alias($._nonconforming_curly_braces, $.non_syntax),	// nonconforming: { }
 			$.$backreference,											// \1 ... \9 \1__ ... \9__ \k<__>   nonconforming: \k
 			$.$group_or_lookaround,										// (__) (?<__>__) (?:__) (?=__) (?!__) (?<=__) (?<!__)   invalid: ( )
 			$.$character_set,											// [__] [^__]   invalid: [ ]
 			$.character_class_escape,									// \d \D \s \S \w \W
 			$.$p_character_escape,										// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__   nonconforming: \c \x \u
 			$.any_character,											// .
-			alias($._p_non_syntax, $.non_syntax),	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+			alias(/[{}]/, $.non_syntax),
+			alias($._p_non_syntax_character, $.non_syntax),	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 		),
 		
 		
 		//#####  quantifiers  #####
 		
 		
-		$quantifier: $ => choice(
-			seq(
-				choice(
-					$.optional,											// ? ??
-					$.zero_or_more,										// * *?
-					$.one_or_more,										// + +?
-					$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
-				),
-				repeat($.$invalid_extra_quantifier),
+		$quantifier: $ => seq(
+			choice(
+				$.optional,											// ? ??
+				$.zero_or_more,										// * *?
+				$.one_or_more,										// + +?
+				$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
 			),
-			$.$nonconforming_count_quantifier,
+			repeat(alias($.$invalid_extra_quantifier, $.invalid)),
 		),
-		
-		$invalid_extra_quantifier: $ => choice(
-			alias(/\?/, $.invalid),
-			alias(/\*/, $.invalid),
-			alias(/\+/, $.invalid),
-			alias(/\{[0-9]+(,[0-9]*)?\}/, $.invalid),
-		),
-		
 		
 		optional: quantifierRule($ => /\?/),
 		zero_or_more: quantifierRule($ => /\*/),
 		one_or_more: quantifierRule($ => /\+/),
 		count_quantifier: quantifierRule($ => seq(
-			/\{/,
+			$._begin_count_quantifier,
 			seq(
 				alias(/[0-9]+/, $.count_quantifier_value),
 				optional(seq(
@@ -133,31 +122,13 @@ module.exports = grammar({
 			/\}/,
 		)),
 		
-		$nonconforming_count_quantifier: $ => alias(choice(
+		$invalid_extra_quantifier: $ => choice(
+			/[?*+]/,
 			seq(
-				/\{/,
-				seq(
-					/[0-9]+/,
-					/,/,
-					/[0-9]+/,
-				),
+				$._begin_count_quantifier,
+				/[0-9]+(,[0-9]*)?\}/,
 			),
-			seq(
-				/\{/,
-				seq(
-					/[0-9]+/,
-					/,/,
-				),
-			),
-			/*seq(
-				/\{/,
-				/[0-9]+/,
-			),*/
-			///\{/,
-			///\{([0-9]+(,[0-9]*)?)?/,
-		), $.non_syntax),
-		
-		_nonconforming_curly_braces: $ => /[{}]/,
+		),
 		
 		
 		//#####  backreferences  #####
@@ -298,7 +269,7 @@ module.exports = grammar({
 					$.character_class_escape,									// \d \D \s \S \w \W
 					$.$s_character_escape,										// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
 					alias($._dash, $.non_syntax),						// -
-					alias($._s_non_syntax, $.non_syntax),	// NOT: - \ ] or newline
+					alias($._s_non_syntax_character, $.non_syntax),	// NOT: - \ ] or newline
 				),
 			),
 			alias(/\]/, $.set_end),
@@ -370,7 +341,8 @@ module.exports = grammar({
 		
 		
 		control_letter_escape: $ => seq(
-			$._backslash, /c/,
+			$._backslash,
+			/c/,
 			alias(/[a-zA-Z]/, $.control_letter_code),
 		),
 		$nonconforming_control_letter_escape: $ => seq(
@@ -380,13 +352,15 @@ module.exports = grammar({
 		
 		
 		octal_escape: $ => seq(
-			$._backslash, /0/,
+			$._backslash,
+			/0/,
 			alias(/0?[1-7]|[1-7][0-7]/, $.octal_code),
 		),
 		
 		
 		hexadecimal_escape: $ => seq(
-			$._backslash, /x/,
+			$._backslash,
+			/x/,
 			alias(/[a-fA-F0-9]{2}/, $.hexadecimal_code),
 		),
 		$nonconforming_hexadecimal_escape: $ => seq(
@@ -396,7 +370,8 @@ module.exports = grammar({
 		
 		
 		unicode_escape: $ => seq(
-			$._backslash, /u/,
+			$._backslash,
+			/u/,
 			alias(/[a-fA-F0-9]{4}/, $.unicode_code),
 		),
 		$nonconforming_unicode_escape: $ => seq(
@@ -431,8 +406,7 @@ module.exports = grammar({
 		any_character: $ => /\./,
 		
 		
-		_p_non_syntax: $ => /[^\^$\\.*+?()\[\]{}|\/\n]+/,	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
-		_s_non_syntax: $ => /[^-\\\]\n]+/,					// NOT: - \ ] or newline
+		_p_non_syntax_character: $ => /[^\^$\\.*+?()\[\]{}|\/\n]/,	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 		_s_non_syntax_character: $ => /[^-\\\]\n]/,			// NOT: - \ ] or newline
 		
 	}

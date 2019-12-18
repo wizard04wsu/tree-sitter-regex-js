@@ -92,15 +92,6 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_nonconforming_curly_braces"
-          },
-          "named": true,
-          "value": "non_syntax"
-        },
-        {
           "type": "SYMBOL",
           "name": "$backreference"
         },
@@ -127,8 +118,17 @@
         {
           "type": "ALIAS",
           "content": {
+            "type": "PATTERN",
+            "value": "[{}]"
+          },
+          "named": true,
+          "value": "non_syntax"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
             "type": "SYMBOL",
-            "name": "_p_non_syntax"
+            "name": "_p_non_syntax_character"
           },
           "named": true,
           "value": "non_syntax"
@@ -136,85 +136,40 @@
       ]
     },
     "$quantifier": {
-      "type": "CHOICE",
+      "type": "SEQ",
       "members": [
         {
-          "type": "SEQ",
+          "type": "CHOICE",
           "members": [
             {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "SYMBOL",
-                  "name": "optional"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "zero_or_more"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "one_or_more"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "count_quantifier"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "optional"
             },
             {
-              "type": "REPEAT",
-              "content": {
-                "type": "SYMBOL",
-                "name": "$invalid_extra_quantifier"
-              }
+              "type": "SYMBOL",
+              "name": "zero_or_more"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "one_or_more"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "count_quantifier"
             }
           ]
         },
         {
-          "type": "SYMBOL",
-          "name": "$nonconforming_count_quantifier"
-        }
-      ]
-    },
-    "$invalid_extra_quantifier": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "ALIAS",
+          "type": "REPEAT",
           "content": {
-            "type": "PATTERN",
-            "value": "\\?"
-          },
-          "named": true,
-          "value": "invalid"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "\\*"
-          },
-          "named": true,
-          "value": "invalid"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "\\+"
-          },
-          "named": true,
-          "value": "invalid"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "\\{[0-9]+(,[0-9]*)?\\}"
-          },
-          "named": true,
-          "value": "invalid"
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "$invalid_extra_quantifier"
+            },
+            "named": true,
+            "value": "invalid"
+          }
         }
       ]
     },
@@ -303,8 +258,8 @@
           "type": "SEQ",
           "members": [
             {
-              "type": "PATTERN",
-              "value": "\\{"
+              "type": "SYMBOL",
+              "name": "_begin_count_quantifier"
             },
             {
               "type": "SEQ",
@@ -384,67 +339,27 @@
         }
       ]
     },
-    "$nonconforming_count_quantifier": {
-      "type": "ALIAS",
-      "content": {
-        "type": "CHOICE",
-        "members": [
-          {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "PATTERN",
-                "value": "\\{"
-              },
-              {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "PATTERN",
-                    "value": "[0-9]+"
-                  },
-                  {
-                    "type": "PATTERN",
-                    "value": ","
-                  },
-                  {
-                    "type": "PATTERN",
-                    "value": "[0-9]+"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "PATTERN",
-                "value": "\\{"
-              },
-              {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "PATTERN",
-                    "value": "[0-9]+"
-                  },
-                  {
-                    "type": "PATTERN",
-                    "value": ","
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "named": true,
-      "value": "non_syntax"
-    },
-    "_nonconforming_curly_braces": {
-      "type": "PATTERN",
-      "value": "[{}]"
+    "$invalid_extra_quantifier": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[?*+]"
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_begin_count_quantifier"
+            },
+            {
+              "type": "PATTERN",
+              "value": "[0-9]+(,[0-9]*)?\\}"
+            }
+          ]
+        }
+      ]
     },
     "$backreference": {
       "type": "CHOICE",
@@ -1056,7 +971,7 @@
                 "type": "ALIAS",
                 "content": {
                   "type": "SYMBOL",
-                  "name": "_s_non_syntax"
+                  "name": "_s_non_syntax_character"
                 },
                 "named": true,
                 "value": "non_syntax"
@@ -1505,13 +1420,9 @@
       "type": "PATTERN",
       "value": "\\."
     },
-    "_p_non_syntax": {
+    "_p_non_syntax_character": {
       "type": "PATTERN",
-      "value": "[^\\^$\\\\.*+?()\\[\\]{}|\\/\\n]+"
-    },
-    "_s_non_syntax": {
-      "type": "PATTERN",
-      "value": "[^-\\\\\\]\\n]+"
+      "value": "[^\\^$\\\\.*+?()\\[\\]{}|\\/\\n]"
     },
     "_s_non_syntax_character": {
       "type": "PATTERN",
@@ -1557,6 +1468,10 @@
     {
       "type": "SYMBOL",
       "name": "_has_backreference_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_begin_count_quantifier"
     }
   ],
   "inline": [
@@ -1564,7 +1479,6 @@
     "$pattern",
     "$quantifier",
     "$invalid_extra_quantifier",
-    "$nonconforming_count_quantifier",
     "$repeatable_symbol",
     "$backreference",
     "$named_backreference_prefix",
