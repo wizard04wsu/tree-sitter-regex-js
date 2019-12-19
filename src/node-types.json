@@ -344,7 +344,21 @@
   {
     "type": "invalid",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "group_name",
+          "named": true
+        },
+        {
+          "type": "identity_escape",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "lookahead_assertion",

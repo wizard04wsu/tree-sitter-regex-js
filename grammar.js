@@ -33,7 +33,6 @@ module.exports = grammar({
 		[ $.zero_or_more, ],
 		[ $.one_or_more, ],
 		[ $.count_quantifier, ],
-		[ $.$invalid_named_capturing_group_identifier, $.group_name, ],
 	],
 	
 	inline: $ => [
@@ -86,6 +85,7 @@ module.exports = grammar({
 		$repeatable_symbol: $ => choice(
 			$.$backreference,											// \1 ... \9 \1__ ... \9__ \k<__>   nonconforming: \k
 			$.$group_or_lookaround,										// (__) (?<__>__) (?:__) (?=__) (?!__) (?<=__) (?<!__)   invalid: ( )
+//			alias($.group_end, $.invalid),
 			$.$character_set,											// [__] [^__]   invalid: [ ]
 			$.character_class_escape,									// \d \D \s \S \w \W
 			$.$p_character_escape,										// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__   nonconforming: \c \x \u
@@ -98,7 +98,7 @@ module.exports = grammar({
 		//#####  quantifiers  #####
 		
 		
-		$quantifier: $ => seq(
+		$quantifier: $ => prec.right(seq(
 			choice(
 				$.optional,											// ? ??
 				$.zero_or_more,										// * *?
@@ -106,7 +106,7 @@ module.exports = grammar({
 				$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
 			),
 			repeat(alias($.$invalid_extra_quantifier, $.invalid)),
-		),
+		)),
 		
 		optional: quantifierRule($ => /\?/),
 		zero_or_more: quantifierRule($ => /\*/),
@@ -142,7 +142,8 @@ module.exports = grammar({
 		),
 		
 		numeric_backreference: $ => seq(
-			$._backslash, /[1-9][0-9]*/,
+			$._backslash,
+			/[1-9][0-9]*/,
 		),
 		
 		named_backreference: $ => seq(
@@ -166,15 +167,13 @@ module.exports = grammar({
 		
 		
 		$group_or_lookaround: $ => choice(
-			$.lookahead_assertion,									// (?=__)
-			$.negative_lookahead_assertion,							// (?!__)
-			$.lookbehind_assertion,									// (?<=__)
-			$.negative_lookbehind_assertion,						// (?<!__)
-			$.non_capturing_group,									// (?:__)
-			$.named_capturing_group,								// (?<__>__)
-			$.anonymous_capturing_group,							// (__)
-			alias($.$invalid_named_capturing_group_identifier, $.invalid),	// invalid: (?<>__)
-			alias($._invalid_group_delimiter, $.invalid),			// invalid: ( ) elsewhere outside of a character set
+			$.lookahead_assertion,											// (?=__)
+			$.negative_lookahead_assertion,									// (?!__)
+			$.lookbehind_assertion,											// (?<=__)
+			$.negative_lookbehind_assertion,								// (?<!__)
+			$.non_capturing_group,											// (?:__)
+			$.named_capturing_group,										// (?<__>__)
+			$.anonymous_capturing_group,									// (__)
 		),
 		
 		
@@ -187,28 +186,23 @@ module.exports = grammar({
 		non_capturing_group: groupRule($ => alias(/\?:/, $.non_capturing_group_identifier)),
 		
 		
-		named_capturing_group: groupRule($ => $.named_capturing_group_identifier),
+		named_capturing_group: groupRule($ => choice(
+			$.named_capturing_group_identifier,
+			alias($.$invalid_named_capturing_group_identifier, $.invalid),
+		)),
 		
-		named_capturing_group_identifier: $ => seq(
+		named_capturing_group_identifier: $ => prec(1, seq(
 			/\?</,
 			$.group_name,
 			/>/,
-		),
+		)),
 		$invalid_named_capturing_group_identifier: $ => choice(
 			/\?<>/,
-			seq(
+			prec.right(seq(
 				/\?</,
-				//optional($.group_name),
-				repeat(
-					choice(
-						/[a-zA-Z0-9$_]/,
-						/\\u[a-fA-F0-9]{4}/,
-					),
-				),
-				/[^a-zA-Z0-9$_\\>\^$.*+?()\[\]{}|]|\\[^u]|\\u[a-fA-F0-9]{0,3}/,
-				/[^>\^$.*+?()\[\]{}|]*/,
-				optional(/>/),
-			),
+				optional($.group_name),
+				optional(alias($.$nonconforming_unicode_escape, $.identity_escape)),
+			)),
 		),
 		
 		
@@ -227,12 +221,12 @@ module.exports = grammar({
 				)
 			),
 		),*/
-		group_name: $ => repeat1(
+		group_name: $ => prec.right(repeat1(
 			choice(
 				/[a-zA-Z0-9$_]/,
 				$.unicode_escape,
 			),
-		),
+		)),
 		
 		
 		anonymous_capturing_group: groupRule($ => blank()),
@@ -322,7 +316,7 @@ module.exports = grammar({
 		//#####  character escapes  #####
 		
 		
-		$p_character_escape: $ => choice(
+		$p_character_escape: $ => prec.left(choice(
 			$.null_character,
 			alias($.$p_special_escape, $.special_escape),
 			$.control_letter_escape,
@@ -333,7 +327,7 @@ module.exports = grammar({
 			alias($.$nonconforming_hexadecimal_escape, $.identity_escape),
 			alias($.$nonconforming_unicode_escape, $.identity_escape),
 			alias($.$p_identity_escape, $.identity_escape),
-		),
+		)),
 		$s_character_escape: $ => choice(
 			$.null_character,
 			alias($.$s_special_escape, $.special_escape),
