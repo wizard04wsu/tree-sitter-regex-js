@@ -3,7 +3,7 @@
 
 enum TokenType {
 	NULL_CHAR,
-	HAS_BACKREFERENCE_NAME,
+	HAS_GROUP_NAME,
 	BEGIN_COUNT_QUANTIFIER,
 };
 
@@ -41,7 +41,7 @@ bool tree_sitter_regex_external_scanner_scan(
 			return true;
 		}
 	}
-	else if (valid_symbols[HAS_BACKREFERENCE_NAME] && lexer->lookahead == '<') {
+	else if (valid_symbols[HAS_GROUP_NAME] && lexer->lookahead == '<') {
 		lexer->mark_end(lexer);
 		advance(lexer);
 		if (lexer->lookahead == '>') {
@@ -71,7 +71,7 @@ bool tree_sitter_regex_external_scanner_scan(
 			}
 		}
 		if(lexer->lookahead == '>') {
-			lexer->result_symbol = HAS_BACKREFERENCE_NAME;
+			lexer->result_symbol = HAS_GROUP_NAME;
 			return true;
 		}
 	}

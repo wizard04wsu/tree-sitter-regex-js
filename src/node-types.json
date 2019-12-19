@@ -342,25 +342,6 @@
     }
   },
   {
-    "type": "invalid",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "group_name",
-          "named": true
-        },
-        {
-          "type": "identity_escape",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "lookahead_assertion",
     "named": true,
     "fields": {},
@@ -1512,6 +1493,10 @@
   },
   {
     "type": "hexadecimal_code",
+    "named": true
+  },
+  {
+    "type": "invalid",
     "named": true
   },
   {

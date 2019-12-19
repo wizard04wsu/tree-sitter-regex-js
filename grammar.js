@@ -18,7 +18,7 @@ module.exports = grammar({
 	
 	externals: $ => [
 		$.null_character,			// \0 \00  (neither followed by 1-7)  \000
-		$._has_backreference_name,	// (no content) determines if a named backreference ( \k<__> ) includes a valid group name
+		$._has_group_name,	// (no content) determines if a named capturing group or named backreference includes a valid group name
 		$._begin_count_quantifier,	// matches the left curly brace of a count quantifier
 	],
 	
@@ -26,8 +26,8 @@ module.exports = grammar({
 	
 	conflicts: $ => [
 		[ $.character_set, $.character_range, ],
-		[ $.group_name, $.named_capturing_group_identifier, ],
-		[ $.named_capturing_group_identifier, $.unicode_escape, ],
+		//[ $.group_name, $.named_capturing_group_identifier, ],
+		//[ $.named_capturing_group_identifier, $.unicode_escape, ],
 		[ $.named_backreference, $.$nonconforming_named_backreference, ],
 		[ $.optional, ],
 		[ $.zero_or_more, ],
@@ -44,6 +44,7 @@ module.exports = grammar({
 		$.$backreference,
 		$.$named_backreference_prefix,
 		$.$group_or_lookaround,
+		$.$named_capturing_group_identifier_prefix,
 		$.$character_set,
 		$.$boundary_assertion,
 		$.$character_range_unit,
@@ -155,7 +156,7 @@ module.exports = grammar({
 		$named_backreference_prefix: $ => seq(
 			$._backslash,
 			/k/,
-			$._has_backreference_name,		// (no content) matches if the backreference includes a valid group name
+			$._has_group_name,		// (no content) matches if the backreference includes a valid group name
 		),
 		$nonconforming_named_backreference: $ => seq(
 			alias($._backslash, $.escape_operator),
@@ -173,6 +174,7 @@ module.exports = grammar({
 			$.negative_lookbehind_assertion,								// (?<!__)
 			$.non_capturing_group,											// (?:__)
 			$.named_capturing_group,										// (?<__>__)
+			alias($.$invalid_named_capturing_group, $.anonymous_capturing_group),
 			$.anonymous_capturing_group,									// (__)
 		),
 		
@@ -186,23 +188,17 @@ module.exports = grammar({
 		non_capturing_group: groupRule($ => alias(/\?:/, $.non_capturing_group_identifier)),
 		
 		
-		named_capturing_group: groupRule($ => choice(
-			$.named_capturing_group_identifier,
-			alias($.$invalid_named_capturing_group_identifier, $.invalid),
-		)),
-		
-		named_capturing_group_identifier: $ => prec(1, seq(
-			/\?</,
+		named_capturing_group: groupRule($ => $.named_capturing_group_identifier),
+		$invalid_named_capturing_group: groupRule($ => alias(/\?/, $.invalid)),
+		named_capturing_group_identifier: $ => seq(
+			$.$named_capturing_group_identifier_prefix,	// ?
+			/</,
 			$.group_name,
 			/>/,
-		)),
-		$invalid_named_capturing_group_identifier: $ => choice(
-			/\?<>/,
-			prec.right(seq(
-				/\?</,
-				optional($.group_name),
-				optional(alias($.$nonconforming_unicode_escape, $.identity_escape)),
-			)),
+		),
+		$named_capturing_group_identifier_prefix: $ => seq(
+			/\?/,
+			$._has_group_name,		// (no content) matches if the identifier includes a valid group name
 		),
 		
 		

@@ -434,7 +434,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_has_backreference_name"
+          "name": "_has_group_name"
         }
       ]
     },
@@ -482,6 +482,15 @@
         {
           "type": "SYMBOL",
           "name": "named_capturing_group"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "$invalid_named_capturing_group"
+          },
+          "named": true,
+          "value": "anonymous_capturing_group"
         },
         {
           "type": "SYMBOL",
@@ -712,22 +721,51 @@
           "name": "group_begin"
         },
         {
+          "type": "SYMBOL",
+          "name": "named_capturing_group_identifier"
+        },
+        {
           "type": "CHOICE",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "named_capturing_group_identifier"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "$pattern"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "$disjunction"
+                }
+              ]
             },
             {
-              "type": "ALIAS",
-              "content": {
-                "type": "SYMBOL",
-                "name": "$invalid_named_capturing_group_identifier"
-              },
-              "named": true,
-              "value": "invalid"
+              "type": "BLANK"
             }
           ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "group_end"
+        }
+      ]
+    },
+    "$invalid_named_capturing_group": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "group_begin"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "\\?"
+          },
+          "named": true,
+          "value": "invalid"
         },
         {
           "type": "CHOICE",
@@ -757,74 +795,36 @@
       ]
     },
     "named_capturing_group_identifier": {
-      "type": "PREC",
-      "value": 1,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "PATTERN",
-            "value": "\\?<"
-          },
-          {
-            "type": "SYMBOL",
-            "name": "group_name"
-          },
-          {
-            "type": "PATTERN",
-            "value": ">"
-          }
-        ]
-      }
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "$named_capturing_group_identifier_prefix"
+        },
+        {
+          "type": "PATTERN",
+          "value": "<"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "group_name"
+        },
+        {
+          "type": "PATTERN",
+          "value": ">"
+        }
+      ]
     },
-    "$invalid_named_capturing_group_identifier": {
-      "type": "CHOICE",
+    "$named_capturing_group_identifier_prefix": {
+      "type": "SEQ",
       "members": [
         {
           "type": "PATTERN",
-          "value": "\\?<>"
+          "value": "\\?"
         },
         {
-          "type": "PREC_RIGHT",
-          "value": 0,
-          "content": {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "PATTERN",
-                "value": "\\?<"
-              },
-              {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "SYMBOL",
-                    "name": "group_name"
-                  },
-                  {
-                    "type": "BLANK"
-                  }
-                ]
-              },
-              {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "ALIAS",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "$nonconforming_unicode_escape"
-                    },
-                    "named": true,
-                    "value": "identity_escape"
-                  },
-                  {
-                    "type": "BLANK"
-                  }
-                ]
-              }
-            ]
-          }
+          "type": "SYMBOL",
+          "name": "_has_group_name"
         }
       ]
     },
@@ -1503,14 +1503,6 @@
       "character_range"
     ],
     [
-      "group_name",
-      "named_capturing_group_identifier"
-    ],
-    [
-      "named_capturing_group_identifier",
-      "unicode_escape"
-    ],
-    [
       "named_backreference",
       "$nonconforming_named_backreference"
     ],
@@ -1534,7 +1526,7 @@
     },
     {
       "type": "SYMBOL",
-      "name": "_has_backreference_name"
+      "name": "_has_group_name"
     },
     {
       "type": "SYMBOL",
@@ -1550,6 +1542,7 @@
     "$backreference",
     "$named_backreference_prefix",
     "$group_or_lookaround",
+    "$named_capturing_group_identifier_prefix",
     "$character_set",
     "$boundary_assertion",
     "$character_range_unit",
