@@ -3,7 +3,7 @@ const quantifierRule = quantifier => $ => seq(
 	optional(alias(/\?/, $.lazy)),
 );
 
-const groupRule = identifier => $ => seq(
+const groupRule = identifier => $ => prec(1, seq(
 	$.group_begin,
 	identifier($),
 	optional(choice(
@@ -11,7 +11,7 @@ const groupRule = identifier => $ => seq(
 		$.$disjunction,
 	)),
 	$.group_end,
-);
+));
 
 module.exports = grammar({
 	name: 'regex',
@@ -26,8 +26,8 @@ module.exports = grammar({
 	
 	conflicts: $ => [
 		[ $.character_set, $.character_range, ],
-		//[ $.group_name, $.named_capturing_group_identifier, ],
-		//[ $.named_capturing_group_identifier, $.unicode_escape, ],
+		[ $.anonymous_capturing_group, ],
+		[ $.$invalid_group, ],
 		[ $.named_backreference, $.$nonconforming_named_backreference, ],
 		[ $.optional, ],
 		[ $.zero_or_more, ],
@@ -85,8 +85,7 @@ module.exports = grammar({
 		
 		$repeatable_symbol: $ => choice(
 			$.$backreference,											// \1 ... \9 \1__ ... \9__ \k<__>   nonconforming: \k
-			$.$group_or_lookaround,										// (__) (?<__>__) (?:__) (?=__) (?!__) (?<=__) (?<!__)   invalid: ( )
-//			alias($.group_end, $.invalid),
+			$.$group_or_lookaround,										// (__) (?<__>__) (?:__) (?=__) (?!__) (?<=__) (?<!__)   invalid: ( (? )
 			$.$character_set,											// [__] [^__]   invalid: [ ]
 			$.character_class_escape,									// \d \D \s \S \w \W
 			$.$p_character_escape,										// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__   nonconforming: \c \x \u
@@ -168,14 +167,14 @@ module.exports = grammar({
 		
 		
 		$group_or_lookaround: $ => choice(
-			$.lookahead_assertion,											// (?=__)
-			$.negative_lookahead_assertion,									// (?!__)
-			$.lookbehind_assertion,											// (?<=__)
-			$.negative_lookbehind_assertion,								// (?<!__)
-			$.non_capturing_group,											// (?:__)
-			$.named_capturing_group,										// (?<__>__)
-			alias($.$invalid_named_capturing_group, $.anonymous_capturing_group),
-			$.anonymous_capturing_group,									// (__)
+			$.lookahead_assertion,													// (?=__)
+			$.negative_lookahead_assertion,											// (?!__)
+			$.lookbehind_assertion,													// (?<=__)
+			$.negative_lookbehind_assertion,										// (?<!__)
+			$.non_capturing_group,													// (?:__)
+			$.named_capturing_group,												// (?<__>__)
+			$.anonymous_capturing_group,											// (__)
+			$.$invalid_group,
 		),
 		
 		
@@ -189,7 +188,6 @@ module.exports = grammar({
 		
 		
 		named_capturing_group: groupRule($ => $.named_capturing_group_identifier),
-		$invalid_named_capturing_group: groupRule($ => alias(/\?/, $.invalid)),
 		named_capturing_group_identifier: $ => seq(
 			$.$named_capturing_group_identifier_prefix,	// ?
 			/</,
@@ -228,11 +226,22 @@ module.exports = grammar({
 		anonymous_capturing_group: groupRule($ => blank()),
 		
 		
+		$invalid_group: $ => choice(
+			prec.left(1, seq(
+				alias($.group_begin, $.invalid),
+				alias(/\?/, $.invalid),
+				optional(choice(
+					$.$pattern,
+					$.$disjunction,
+				)),
+				optional(alias($.group_end, $.invalid)),
+			)),
+			alias($.group_end, $.invalid),
+		),
+		
+		
 		group_begin: $ => /\(/,
 		group_end: $ => /\)/,
-		
-		//make sure this is below $.group_begin and $.group_end in the code
-		_invalid_group_delimiter: $ => /[()]/,
 		
 		
 		//#####  boundary assertions  #####
