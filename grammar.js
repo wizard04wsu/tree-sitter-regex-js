@@ -33,6 +33,7 @@ module.exports = grammar({
 		[ $.zero_or_more, ],
 		[ $.one_or_more, ],
 		[ $.count_quantifier, ],
+		[ $.$invalid_named_capturing_group_identifier, $.group_name, ],
 	],
 	
 	inline: $ => [
@@ -193,7 +194,22 @@ module.exports = grammar({
 			$.group_name,
 			/>/,
 		),
-		$invalid_named_capturing_group_identifier: $ => /\?<>/,
+		$invalid_named_capturing_group_identifier: $ => choice(
+			/\?<>/,
+			seq(
+				/\?</,
+				//optional($.group_name),
+				repeat(
+					choice(
+						/[a-zA-Z0-9$_]/,
+						/\\u[a-fA-F0-9]{4}/,
+					),
+				),
+				/[^a-zA-Z0-9$_\\>\^$.*+?()\[\]{}|]|\\[^u]|\\u[a-fA-F0-9]{0,3}/,
+				/[^>\^$.*+?()\[\]{}|]*/,
+				optional(/>/),
+			),
+		),
 		
 		
 		//TODO: Tree-sitter doesn't support Unicode property escapes, so I can't reasonably make this match the spec.

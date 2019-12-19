@@ -342,6 +342,11 @@
     }
   },
   {
+    "type": "invalid",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "lookahead_assertion",
     "named": true,
     "fields": {},
@@ -1493,10 +1498,6 @@
   },
   {
     "type": "hexadecimal_code",
-    "named": true
-  },
-  {
-    "type": "invalid",
     "named": true
   },
   {
