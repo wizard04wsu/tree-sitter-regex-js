@@ -21,25 +21,23 @@ bool tree_sitter_regex_external_scanner_scan(
 	TSLexer *lexer,
 	const bool *valid_symbols
 ) {
-	if (lexer->lookahead == '\\') {
-		if (valid_symbols[NULL_CHAR]) {
-			int zeroCount;
-			for (zeroCount=0; zeroCount<=3; zeroCount++) {
-				advance(lexer);
-				if (lexer->lookahead != '0') {
-					break;
-				}
+	if (valid_symbols[NULL_CHAR] && lexer->lookahead == '\\') {
+		int zeroCount;
+		for (zeroCount=0; zeroCount<=3; zeroCount++) {
+			advance(lexer);
+			if (lexer->lookahead != '0') {
+				break;
 			}
-			lexer->mark_end(lexer);
-			if (zeroCount == 0) {
-				return false;
-			}
-			if (zeroCount < 3 && lexer->lookahead != 0 && strchr("1234567", lexer->lookahead) != NULL) {
-				return false;
-			}
-			lexer->result_symbol = NULL_CHAR;
-			return true;
 		}
+		lexer->mark_end(lexer);
+		if (zeroCount == 0) {
+			return false;
+		}
+		if (zeroCount < 3 && lexer->lookahead != 0 && strchr("1234567", lexer->lookahead) != NULL) {
+			return false;
+		}
+		lexer->result_symbol = NULL_CHAR;
+		return true;
 	}
 	else if (valid_symbols[HAS_GROUP_NAME] && lexer->lookahead == '<') {
 		lexer->mark_end(lexer);

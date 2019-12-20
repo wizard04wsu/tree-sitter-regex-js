@@ -314,7 +314,8 @@ module.exports = grammar({
 		
 		
 		character_class_escape: $ => seq(
-			$._backslash, /[dDsSwW]/,
+			$._backslash,
+      /[dDsSwW]/,
 		),
 		
 		
@@ -348,10 +349,12 @@ module.exports = grammar({
 		
 		
 		$p_special_escape: $ => seq(
-			$._backslash, /[fnrtv]/,
+			$._backslash,
+      /[fnrtv]/,
 		),
 		$s_special_escape: $ => seq(
-			$._backslash, /[fnrtvb]/,
+			$._backslash,
+      /[fnrtvb]/,
 		),
 		
 		
