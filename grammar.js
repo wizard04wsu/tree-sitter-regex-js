@@ -18,7 +18,7 @@ module.exports = grammar({
 	
 	externals: $ => [
 		$.null_character,			// \0 \00  (neither followed by 1-7)  \000
-		$._has_group_name,	// (no content) determines if a named capturing group or named backreference includes a valid group name
+		$._has_group_name,			// (no content) determines if a named capturing group or named backreference includes a valid group name
 		$._begin_count_quantifier,	// matches the left curly brace of a count quantifier
 	],
 	
@@ -72,12 +72,17 @@ module.exports = grammar({
 		),
 		
 		
-		$pattern: $ => repeat1(
-			choice(
-				$.$boundary_assertion,
-				seq(
-					$.$repeatable_symbol,
-					optional($.$quantifier),
+		$pattern: $ => seq(
+			optional(
+				alias($.$quantifier, $.invalid),
+			),
+			repeat1(
+				choice(
+					$.$boundary_assertion,
+					seq(
+						$.$repeatable_symbol,
+						optional($.$quantifier),
+					),
 				),
 			),
 		),
@@ -91,7 +96,7 @@ module.exports = grammar({
 			$.$p_character_escape,										// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__   nonconforming: \c \x \u
 			$.any_character,											// .
 			alias(/[{}]/, $.non_syntax),
-			alias($._p_non_syntax_character, $.non_syntax),	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+			alias($._p_non_syntax_character, $.non_syntax),				// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 		),
 		
 		
@@ -280,11 +285,11 @@ module.exports = grammar({
 			optional(alias(/\^/, $.set_negation)),
 			repeat(
 				choice(
-					$.character_range,											// __-__
-					$.character_class_escape,									// \d \D \s \S \w \W
-					$.$s_character_escape,										// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
+					$.character_range,									// __-__
+					$.character_class_escape,							// \d \D \s \S \w \W
+					$.$s_character_escape,								// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
 					alias($._dash, $.non_syntax),						// -
-					alias($._s_non_syntax_character, $.non_syntax),	// NOT: - \ ] or newline
+					alias($._s_non_syntax_character, $.non_syntax),		// NOT: - \ ] or newline
 				),
 			),
 			alias(/\]/, $.set_end),
@@ -304,9 +309,9 @@ module.exports = grammar({
 		)),
 		
 		$character_range_unit: $ => choice(
-			$.$s_character_escape,										// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
+			$.$s_character_escape,								// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
 			alias($._dash, $.non_syntax),						// -
-			alias($._s_non_syntax_character, $.non_syntax),	// NOT: - \ ] or newline
+			alias($._s_non_syntax_character, $.non_syntax),		// NOT: - \ ] or newline
 		),
 		
 		
