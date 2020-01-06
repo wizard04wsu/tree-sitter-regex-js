@@ -3,8 +3,10 @@
 
 enum TokenType {
 	NULL_CHAR,
-	HAS_GROUP_NAME,
+	BEGIN_GROUP_NAME,
+	BEGIN_NAMED_CAPTURING_GROUP_IDENTIFIER,
 	BEGIN_COUNT_QUANTIFIER,
+	END,
 };
 
 void * tree_sitter_regex_external_scanner_create() { return NULL; }
@@ -16,31 +18,10 @@ static void advance(TSLexer *lexer) {
 	lexer->advance(lexer, false);
 }
 
-bool tree_sitter_regex_external_scanner_scan(
-	void *payload,
-	TSLexer *lexer,
-	const bool *valid_symbols
-) {
-	if (valid_symbols[NULL_CHAR] && lexer->lookahead == '\\') {
-		int zeroCount;
-		for (zeroCount=0; zeroCount<=3; zeroCount++) {
-			advance(lexer);
-			if (lexer->lookahead != '0') {
-				break;
-			}
-		}
-		lexer->mark_end(lexer);
-		if (zeroCount == 0) {
+static bool checkForGroupName(TSLexer *lexer) {
+		if (lexer->lookahead != '<') {
 			return false;
 		}
-		if (zeroCount < 3 && lexer->lookahead != 0 && strchr("1234567", lexer->lookahead) != NULL) {
-			return false;
-		}
-		lexer->result_symbol = NULL_CHAR;
-		return true;
-	}
-	else if (valid_symbols[HAS_GROUP_NAME] && lexer->lookahead == '<') {
-		lexer->mark_end(lexer);
 		advance(lexer);
 		if (lexer->lookahead == '>') {
 			return false;	// <>
@@ -69,27 +50,74 @@ bool tree_sitter_regex_external_scanner_scan(
 			}
 		}
 		if(lexer->lookahead == '>') {
-			lexer->result_symbol = HAS_GROUP_NAME;
 			return true;
 		}
+		return false;
+}
+
+static bool checkForCountQuantifier(TSLexer *lexer) {
+	char digits[] = "0123456789";
+	if (lexer->lookahead == 0 || strchr(digits, lexer->lookahead) == NULL) {
+		return false;
 	}
-	else if (valid_symbols[BEGIN_COUNT_QUANTIFIER] && lexer->lookahead == '{') {
+	while (lexer->lookahead != 0 && strchr(digits, lexer->lookahead) != NULL) {
 		advance(lexer);
-		lexer->mark_end(lexer);
-		char digits[] = "0123456789";
-		if (lexer->lookahead == 0 || strchr(digits, lexer->lookahead) == NULL) {
-			return false;
-		}
+	}
+	if (lexer->lookahead == ',') {
+		advance(lexer);
 		while (lexer->lookahead != 0 && strchr(digits, lexer->lookahead) != NULL) {
 			advance(lexer);
 		}
-		if (lexer->lookahead == ',') {
+	}
+	if (lexer->lookahead == '}') {
+		return true;
+	}
+	return false;
+}
+
+bool tree_sitter_regex_external_scanner_scan(
+	void *payload,
+	TSLexer *lexer,
+	const bool *valid_symbols
+) {
+	lexer->mark_end(lexer);
+	if (lexer->lookahead == 0 && valid_symbols[END]) {
+		lexer->result_symbol = END;
+		return true;
+	}
+	else if (lexer->lookahead == '\\') {
+		advance(lexer);
+		if (valid_symbols[NULL_CHAR] && lexer->lookahead == '0') {
 			advance(lexer);
-			while (lexer->lookahead != 0 && strchr(digits, lexer->lookahead) != NULL) {
+			int zeroCount;
+			for (zeroCount=1; zeroCount<3; zeroCount++) {
+				if (lexer->lookahead != '0') {
+					break;
+				}
 				advance(lexer);
 			}
+			if (zeroCount < 3 && lexer->lookahead != 0 && strchr("1234567", lexer->lookahead) != NULL) {
+				return false;
+			}
+			lexer->mark_end(lexer);
+			lexer->result_symbol = NULL_CHAR;
+			return true;
 		}
-		if (lexer->lookahead == '}') {
+	}
+	else if (lexer->lookahead == '?') {
+		advance(lexer);
+		if (valid_symbols[BEGIN_NAMED_CAPTURING_GROUP_IDENTIFIER] && checkForGroupName(lexer)) {
+			lexer->result_symbol = BEGIN_NAMED_CAPTURING_GROUP_IDENTIFIER;
+			return true;
+		}
+	}
+	else if (lexer->lookahead == '<' && valid_symbols[BEGIN_GROUP_NAME] && checkForGroupName(lexer)) {
+		lexer->result_symbol = BEGIN_GROUP_NAME;
+		return true;
+	}
+	else if (lexer->lookahead == '{') {
+		advance(lexer);
+		if (valid_symbols[BEGIN_COUNT_QUANTIFIER] && checkForCountQuantifier(lexer)) {
 			lexer->result_symbol = BEGIN_COUNT_QUANTIFIER;
 			return true;
 		}

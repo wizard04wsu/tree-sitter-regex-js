@@ -1,53 +1,78 @@
-const quantifierRule = quantifier => $ => seq(
+const quantifierRule = quantifier => $ => prec.right(2, seq(
 	quantifier($),
-	optional(alias(/\?/, $.lazy)),
-);
-
-const groupRule = identifier => $ => prec(1, seq(
-	$.group_begin,
-	identifier($),
-	optional(choice(
-		$.$pattern,
-		$.$disjunction,
+	optional(seq(
+		choice(
+			alias(/\?/, $.lazy),
+			alias(/[*+]/, $.invalid),
+		),
+		repeat(alias(/[?*+]/, $.invalid)),
 	)),
-	$.group_end,
+));
+
+const groupRule = identifier => $ => prec.right(choice(
+	seq(
+		$.group_begin,
+		identifier($),
+		optional($.$pattern_or_disjunction),
+		$.group_end,
+	),
+	seq(
+		alias($.group_begin, $.invalid),
+		identifier($),
+		optional($.$pattern_or_disjunction),
+		$._end_of_regex,
+	),
 ));
 
 module.exports = grammar({
 	name: 'regex',
 	
 	externals: $ => [
-		$.null_character,			// \0 \00  (neither followed by 1-7)  \000
-		$._has_group_name,			// (no content) determines if a named capturing group or named backreference includes a valid group name
-		$._begin_count_quantifier,	// matches the left curly brace of a count quantifier
+		$.null_character,							// \0 \00  (neither followed by 1-7)  \000
+		$._begin_group_name,						// (no content) determines if next token begins a group name   <__>
+		$._begin_named_capturing_group_identifier,	// (no content) determines if next token begins a named capturing group identifier   ?<__>
+		$._begin_count_quantifier,					// (no content) determines if next token begins a count quantifier   {__}
+		$._end_of_regex,							// (no content) determines if there are no more tokens
 	],
 	
 	extras: $ => [],
 	
 	conflicts: $ => [
-		[ $.character_set, $.character_range, ],
-		[ $.anonymous_capturing_group, ],
-		[ $.$invalid_group, ],
-		[ $.named_backreference, $.$nonconforming_named_backreference, ],
+		[ $.regex, ],
+		
 		[ $.optional, ],
 		[ $.zero_or_more, ],
 		[ $.one_or_more, ],
 		[ $.count_quantifier, ],
+		
+		[ $.named_backreference, $.$nonconforming_named_backreference, ],
+		
+		[ $.anonymous_capturing_group, ],
+		
+		[ $.character_set, $.character_range, ],
 	],
 	
 	inline: $ => [
-		$.$disjunction,
+		$.$pattern_or_disjunction,
 		$.$pattern,
-		$.$quantifier,
-		$.$invalid_extra_quantifier,
+		
+		$.$symbol_and_quantifier,
 		$.$repeatable_symbol,
+		
+		$.$quantifier,
+		
 		$.$backreference,
 		$.$named_backreference_prefix,
+		
 		$.$group_or_lookaround,
 		$.$named_capturing_group_identifier_prefix,
+		
 		$.$character_set,
+		
 		$.$boundary_assertion,
+		
 		$.$character_range_unit,
+		
 		$.$p_character_escape,
 		$.$s_character_escape,
 	],
@@ -56,41 +81,82 @@ module.exports = grammar({
 		
 		
 		regex: $ => choice(
-			$.$pattern,
-			$.$disjunction,
+			seq(
+				prec.right(repeat1(
+					prec.right(seq(
+						$.$pattern_or_disjunction,
+						alias($.group_end, $.invalid),
+					)),
+				)),
+				optional($.$pattern_or_disjunction),
+			),
+			$.$pattern_or_disjunction,
 		),
 		
 		
-		$disjunction: $ => seq(
-			optional($.$pattern),
-			repeat1(
-				seq(
-					$.disjunction_delimiter,
-					optional($.$pattern),
+		$pattern_or_disjunction: $ => choice(
+			seq(
+				$.$pattern,
+				repeat(
+					prec.right(seq(
+						repeat1($.disjunction_delimiter),
+						$.$pattern,
+					)),
 				),
+				repeat($.disjunction_delimiter),
+			),
+			seq(
+				repeat1($.disjunction_delimiter),
+				repeat(
+					seq(
+						$.$pattern,
+						repeat1($.disjunction_delimiter),
+					),
+				),
+				optional($.$pattern),
 			),
 		),
 		
 		
-		$pattern: $ => seq(
-			optional(
-				alias($.$quantifier, $.invalid),
-			),
-			repeat1(
-				choice(
-					$.$boundary_assertion,
+		$pattern: $ => choice(
+			seq(
+				optional(choice(
+					repeat1(alias(/[?*+]/, $.invalid)),
 					seq(
-						$.$repeatable_symbol,
-						optional($.$quantifier),
+						$._begin_count_quantifier,
+						alias(/\{/, $.invalid),
+					),
+				)),
+				repeat1(
+					choice(
+						$.$boundary_assertion,
+						$.$symbol_and_quantifier,
 					),
 				),
 			),
+			repeat1(alias(/[?*+]/, $.invalid)),
+			seq(
+				$._begin_count_quantifier,
+				alias(/\{/, $.invalid),
+			),
+		),
+		
+		
+		$symbol_and_quantifier: $ => seq(
+			$.$repeatable_symbol,
+			optional(seq(
+				$.$quantifier,
+				optional(seq(
+					$._begin_count_quantifier,
+					alias(/\{/, $.invalid),
+				)),
+			)),
 		),
 		
 		
 		$repeatable_symbol: $ => choice(
 			$.$backreference,											// \1 ... \9 \1__ ... \9__ \k<__>   nonconforming: \k
-			$.$group_or_lookaround,										// (__) (?<__>__) (?:__) (?=__) (?!__) (?<=__) (?<!__)   invalid: ( (? )
+			$.$group_or_lookaround,										// (__) (?<__>__) (?:__) (?=__) (?!__) (?<=__) (?<!__)
 			$.$character_set,											// [__] [^__]   invalid: [ ]
 			$.character_class_escape,									// \d \D \s \S \w \W
 			$.$p_character_escape,										// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__   nonconforming: \c \x \u
@@ -103,21 +169,19 @@ module.exports = grammar({
 		//#####  quantifiers  #####
 		
 		
-		$quantifier: $ => prec.right(seq(
-			choice(
-				$.optional,											// ? ??
-				$.zero_or_more,										// * *?
-				$.one_or_more,										// + +?
-				$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
-			),
-			repeat(alias($.$invalid_extra_quantifier, $.invalid)),
-		)),
+		$quantifier: $ => choice(
+			$.optional,											// ? ??
+			$.zero_or_more,										// * *?
+			$.one_or_more,										// + +?
+			$.count_quantifier,									// {__} {__,} {__,__} {__}? {__,}? {__,__}?
+		),
 		
 		optional: quantifierRule($ => /\?/),
 		zero_or_more: quantifierRule($ => /\*/),
 		one_or_more: quantifierRule($ => /\+/),
 		count_quantifier: quantifierRule($ => seq(
 			$._begin_count_quantifier,
+			/\{/,
 			seq(
 				alias(/[0-9]+/, $.count_quantifier_value),
 				optional(seq(
@@ -127,14 +191,6 @@ module.exports = grammar({
 			),
 			/\}/,
 		)),
-		
-		$invalid_extra_quantifier: $ => choice(
-			/[?*+]/,
-			seq(
-				$._begin_count_quantifier,
-				/[0-9]+(,[0-9]*)?\}/,
-			),
-		),
 		
 		
 		//#####  backreferences  #####
@@ -152,18 +208,15 @@ module.exports = grammar({
 		),
 		
 		named_backreference: $ => seq(
-			$.$named_backreference_prefix,	// \k
+			$._backslash,
+			/k/,
+			$._begin_group_name,		// (no content) matches if the backreference includes a valid group name
 			/</,
 			$.group_name,
 			/>/,
 		),
-		$named_backreference_prefix: $ => seq(
-			$._backslash,
-			/k/,
-			$._has_group_name,		// (no content) matches if the backreference includes a valid group name
-		),
 		$nonconforming_named_backreference: $ => seq(
-			alias($._backslash, $.escape_operator),
+			$._backslash,
 			/k/,
 		),
 		
@@ -179,36 +232,37 @@ module.exports = grammar({
 			$.non_capturing_group,													// (?:__)
 			$.named_capturing_group,												// (?<__>__)
 			$.anonymous_capturing_group,											// (__)
-			$.$invalid_group,
 		),
 		
 		
-		lookahead_assertion: groupRule($ => alias(/\?=/, $.lookahead_identifier)),
-		negative_lookahead_assertion: groupRule($ => alias(/\?!/, $.negative_lookahead_identifier)),
-		lookbehind_assertion: groupRule($ => alias(/\?<=/, $.lookbehind_identifier)),
-		negative_lookbehind_assertion: groupRule($ => alias(/\?<!/, $.negative_lookbehind_identifier)),
+		lookahead_assertion: groupRule($ => $.lookahead_identifier),
+		negative_lookahead_assertion: groupRule($ => $.negative_lookahead_identifier),
+		lookbehind_assertion: groupRule($ => $.lookbehind_identifier),
+		negative_lookbehind_assertion: groupRule($ => $.negative_lookbehind_identifier),
+		
+		lookahead_identifier: $ => /\?=/,
+		negative_lookahead_identifier: $ => /\?!/,
+		lookbehind_identifier: $ => /\?<=/,
+		negative_lookbehind_identifier: $ => /\?<!/,
 		
 		
-		non_capturing_group: groupRule($ => alias(/\?:/, $.non_capturing_group_identifier)),
+		non_capturing_group: groupRule($ => $.non_capturing_group_identifier),
+		non_capturing_group_identifier: $ => /\?:/,
 		
 		
 		named_capturing_group: groupRule($ => $.named_capturing_group_identifier),
 		named_capturing_group_identifier: $ => seq(
-			$.$named_capturing_group_identifier_prefix,	// ?
-			/</,
+			$._begin_named_capturing_group_identifier,  // (no content)
+			/\?</,
 			$.group_name,
 			/>/,
-		),
-		$named_capturing_group_identifier_prefix: $ => seq(
-			/\?/,
-			$._has_group_name,		// (no content) matches if the identifier includes a valid group name
 		),
 		
 		
 		//TODO: Tree-sitter doesn't support Unicode property escapes, so I can't reasonably make this match the spec.
 		// https://tc39.es/proposal-regexp-named-groups/
 		// http://www.unicode.org/reports/tr31/#Table_Lexical_Classes_for_Identifiers
-		/*group_name: $ => seq(
+		/*group_name: $ => prec.right(seq(
 			choice(
 				/[\p{ID_Start}$_]/,
 				$.unicode_escape,
@@ -219,7 +273,7 @@ module.exports = grammar({
 					$.unicode_escape,
 				)
 			),
-		),*/
+		)),*/
 		group_name: $ => prec.right(repeat1(
 			choice(
 				/[a-zA-Z0-9$_]/,
@@ -229,20 +283,6 @@ module.exports = grammar({
 		
 		
 		anonymous_capturing_group: groupRule($ => blank()),
-		
-		
-		$invalid_group: $ => choice(
-			prec.left(1, seq(
-				alias($.group_begin, $.invalid),
-				alias(/\?/, $.invalid),
-				optional(choice(
-					$.$pattern,
-					$.$disjunction,
-				)),
-				optional(alias($.group_end, $.invalid)),
-			)),
-			alias($.group_end, $.invalid),
-		),
 		
 		
 		group_begin: $ => /\(/,
@@ -276,8 +316,8 @@ module.exports = grammar({
 		
 		
 		$character_set: $ => choice(
-			alias($.character_set, $.character_class),				//renamed to match pre-existing themes
-			alias($._invalid_character_set_delimiter, $.invalid),	// invalid [ ]
+			alias($.character_set, $.character_class),	//renamed to match pre-existing themes
+			alias(/\]/, $.invalid),
 		),
 		
 		character_set: $ => seq(
@@ -294,9 +334,6 @@ module.exports = grammar({
 			),
 			alias(/\]/, $.set_end),
 		),
-		
-		//make sure this is below $.character_set in the code
-		_invalid_character_set_delimiter: $ => /[\[\]]/,
 		
 		
 		//#####  character ranges  #####
@@ -328,38 +365,41 @@ module.exports = grammar({
 		
 		
 		$p_character_escape: $ => prec.left(choice(
-			$.null_character,
+			$.$null_character,
 			alias($.$p_special_escape, $.special_escape),
 			$.control_letter_escape,
 			$.octal_escape,
 			$.hexadecimal_escape,
 			$.unicode_escape,
+			alias($.$p_identity_escape, $.identity_escape),
 			alias($.$nonconforming_control_letter_escape, $.identity_escape),
 			alias($.$nonconforming_hexadecimal_escape, $.identity_escape),
 			alias($.$nonconforming_unicode_escape, $.identity_escape),
-			alias($.$p_identity_escape, $.identity_escape),
 		)),
 		$s_character_escape: $ => choice(
-			$.null_character,
+			$.$null_character,
 			alias($.$s_special_escape, $.special_escape),
 			$.control_letter_escape,
 			$.octal_escape,
 			$.hexadecimal_escape,
 			$.unicode_escape,
+			alias($.$s_identity_escape, $.identity_escape),
 			alias($.$nonconforming_control_letter_escape, $.identity_escape),
 			alias($.$nonconforming_hexadecimal_escape, $.identity_escape),
 			alias($.$nonconforming_unicode_escape, $.identity_escape),
-			alias($.$s_identity_escape, $.identity_escape),
 		),
+		
+		
+		$null_character: $ => prec(1, $.null_character),
 		
 		
 		$p_special_escape: $ => seq(
 			$._backslash,
-      /[fnrtv]/,
+			/[fnrtv]/,
 		),
 		$s_special_escape: $ => seq(
 			$._backslash,
-      /[fnrtvb]/,
+			/[fnrtvb]/,
 		),
 		
 		
@@ -369,7 +409,7 @@ module.exports = grammar({
 			alias(/[a-zA-Z]/, $.control_letter_code),
 		),
 		$nonconforming_control_letter_escape: $ => seq(
-			alias($._backslash, $.escape_operator),
+			$._backslash,
 			/c/,
 		),
 		
@@ -387,7 +427,7 @@ module.exports = grammar({
 			alias(/[a-fA-F0-9]{2}/, $.hexadecimal_code),
 		),
 		$nonconforming_hexadecimal_escape: $ => seq(
-			alias($._backslash, $.escape_operator),
+			$._backslash,
 			/x/,
 		),
 		
@@ -398,7 +438,7 @@ module.exports = grammar({
 			alias(/[a-fA-F0-9]{4}/, $.unicode_code),
 		),
 		$nonconforming_unicode_escape: $ => seq(
-			alias($._backslash, $.escape_operator),
+			$._backslash,
 			/u/,
 		),
 		
