@@ -351,7 +351,7 @@
     "fields": {},
     "children": {
       "multiple": false,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "escape_operator",
@@ -1556,6 +1556,10 @@
   },
   {
     "type": "non_syntax",
+    "named": true
+  },
+  {
+    "type": "null_character",
     "named": true
   },
   {
