@@ -1,16 +1,18 @@
 {
 	"name": "tree-sitter-regex-js",
 	"version": "2.0.1",
-	"description": "JavaScript regular expression grammar",
-	"main": "index.js",
+	"description": "JavaScript regular expression parser",
 	"repository": "https://github.com/wizard04wsu/tree-sitter-regex-js",
 	"keywords": [
 		"javascript",
 		"regex",
-		"parser"
+		"regexp",
+		"parser",
+		"grammar"
 	],
 	"author": "Andy Harrison",
 	"license": "MIT",
+	"main": "index.js",
 	"devDependencies": {
 		"tree-sitter-cli": "^0.15.14"
 	},
