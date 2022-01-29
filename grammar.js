@@ -25,7 +25,7 @@ const groupRule = identifier => $ => prec.right(choice(
 ));
 
 module.exports = grammar({
-	name: 'regex',
+	name: 'regex_js',
 	
 	externals: $ => [
 		$.null_character,							// \0 \00  (neither followed by 1-7)  \000
