@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-regex-js",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Tree-sitter parser for JavaScript regular expressions",
   "repository": "https://github.com/wizard04wsu/tree-sitter-regex-js",
   "keywords": [
