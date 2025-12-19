@@ -18,6 +18,10 @@ static void advance(TSLexer *lexer) {
 	lexer->advance(lexer, false);
 }
 
+static bool contains_char(const char *s, int ch) {
+	return memchr(s, ch, strlen(s)) != NULL;
+}
+
 static bool checkForGroupName(TSLexer *lexer) {
 		if (lexer->lookahead != '<') {
 			return false;
@@ -29,7 +33,7 @@ static bool checkForGroupName(TSLexer *lexer) {
 		char word[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$_";
 		char hex[] = "0123456789abcdefABCDEF";
 		while (lexer->lookahead != 0 && lexer->lookahead != '>') {
-			if (strchr(word, lexer->lookahead) != NULL) {
+			if (contains_char(word, lexer->lookahead)) {
 				 advance(lexer);
 			}
 			else if (lexer->lookahead == '\\') {
@@ -39,7 +43,7 @@ static bool checkForGroupName(TSLexer *lexer) {
 				}
 				for (int i=0; i<4; i++) {
 					advance(lexer);
-					if (lexer->lookahead == 0 || strchr(hex, lexer->lookahead) == NULL) {
+					if (lexer->lookahead == 0 || !contains_char(hex, lexer->lookahead)) {
 						return false;
 					}
 				}
@@ -57,15 +61,15 @@ static bool checkForGroupName(TSLexer *lexer) {
 
 static bool checkForCountQuantifier(TSLexer *lexer) {
 	char digits[] = "0123456789";
-	if (lexer->lookahead == 0 || strchr(digits, lexer->lookahead) == NULL) {
+	if (lexer->lookahead == 0 || !contains_char(digits, lexer->lookahead)) {
 		return false;
 	}
-	while (lexer->lookahead != 0 && strchr(digits, lexer->lookahead) != NULL) {
+	while (lexer->lookahead != 0 && contains_char(digits, lexer->lookahead)) {
 		advance(lexer);
 	}
 	if (lexer->lookahead == ',') {
 		advance(lexer);
-		while (lexer->lookahead != 0 && strchr(digits, lexer->lookahead) != NULL) {
+		while (lexer->lookahead != 0 && contains_char(digits, lexer->lookahead)) {
 			advance(lexer);
 		}
 	}
@@ -96,7 +100,7 @@ bool tree_sitter_regex_external_scanner_scan(
 				}
 				advance(lexer);
 			}
-			if (zeroCount < 3 && lexer->lookahead != 0 && strchr("1234567", lexer->lookahead) != NULL) {
+			if (zeroCount < 3 && lexer->lookahead != 0 && contains_char("1234567", lexer->lookahead)) {
 				return false;
 			}
 			lexer->mark_end(lexer);

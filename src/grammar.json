@@ -1,4 +1,5 @@
 {
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
   "name": "regex",
   "rules": {
     "regex": {
@@ -1970,6 +1971,7 @@
       "character_range"
     ]
   ],
+  "precedences": [],
   "externals": [
     {
       "type": "SYMBOL",
@@ -1999,15 +2001,13 @@
     "$repeatable_symbol",
     "$quantifier",
     "$backreference",
-    "ReferenceError",
     "$group_or_lookaround",
-    "ReferenceError",
     "$character_set",
     "$boundary_assertion",
     "$character_range_unit",
     "$p_character_escape",
     "$s_character_escape"
   ],
-  "supertypes": []
+  "supertypes": [],
+  "reserved": {}
 }
-
