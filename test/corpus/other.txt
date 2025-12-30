@@ -1,0 +1,112 @@
+==============================
+Dot
+==============================
+.
+---------------
+(regex
+	(any_character))
+
+==============================
+Character sets
+==============================
+[a][^a][a^][a-z][a-\d]
+---------------
+(regex
+	(character_class
+		(set_begin)
+		(character)
+		(set_end))
+	(character_class
+		(set_begin)
+		(set_negation)
+		(character)
+		(set_end))
+	(character_class
+		(set_begin)
+		(character)
+		(character)
+		(set_end))
+	(character_class
+		(set_begin)
+		(character_range
+			(character)
+			(range_delimiter)
+			(character))
+		(set_end))
+	(character_class
+		(set_begin)
+		(character)
+		(character)
+		(character_class_escape)
+		(set_end)))
+
+==============================
+Groups and lookarounds
+==============================
+(a(A))(?<b>c)(?:d)(?=e)(?!f)(?<=g)(?<!h)
+---------------
+(regex
+	(anonymous_capturing_group
+		(group_begin)
+		(character)
+		(anonymous_capturing_group
+			(group_begin)
+			(character)
+			(group_end))
+		(group_end))
+	(named_capturing_group
+		(group_begin)
+		(named_capturing_group_identifier
+			(group_name))
+		(character)
+		(group_end))
+	(non_capturing_group
+		(group_begin)
+		(non_capturing_group_identifier)
+		(character)
+		(group_end))
+	(lookahead_assertion
+		(group_begin)
+		(lookahead_identifier)
+		(character)
+		(group_end))
+	(negative_lookahead_assertion
+		(group_begin)
+		(negative_lookahead_identifier)
+		(character)
+		(group_end))
+	(lookbehind_assertion
+		(group_begin)
+		(lookbehind_identifier)
+		(character)
+		(group_end))
+	(negative_lookbehind_assertion
+		(group_begin)
+		(negative_lookbehind_identifier)
+		(character)
+		(group_end)))
+
+==============================
+Backreferences
+==============================
+\1\9\10\999\k<a>
+---------------
+(regex
+	(numeric_backreference)
+	(numeric_backreference)
+	(numeric_backreference)
+	(numeric_backreference)
+	(named_backreference
+		(group_name)))
+
+==============================
+Disjunction
+==============================
+a|b||
+---------------
+(regex
+	(character)
+	(disjunction_delimiter)
+	(character)
+	(disjunction_delimiter)
+	(disjunction_delimiter))

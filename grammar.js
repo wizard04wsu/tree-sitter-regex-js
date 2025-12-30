@@ -28,7 +28,7 @@ module.exports = grammar({
 	name: 'regex',
 	
 	externals: $ => [
-		$.null_character,							// \0 \00  (neither followed by 1-7)  \000
+		$._null_character,							// \0 \00  (neither followed by 1-7)  \000
 		$._begin_group_name,						// (no content) determines if next token begins a group name   <__>
 		$._begin_named_capturing_group_identifier,	// (no content) determines if next token begins a named capturing group identifier   ?<__>
 		$._begin_count_quantifier,					// (no content) determines if next token begins a count quantifier   {__}
@@ -38,16 +38,16 @@ module.exports = grammar({
 	extras: $ => [],
 	
 	conflicts: $ => [
-		[ $.regex, ],
+		//[ $.regex, ],
 		
-		[ $.optional, ],
-		[ $.zero_or_more, ],
-		[ $.one_or_more, ],
-		[ $.count_quantifier, ],
+		//[ $.optional, ],
+		//[ $.zero_or_more, ],
+		//[ $.one_or_more, ],
+		//[ $.count_quantifier, ],
 		
-		[ $.named_backreference, $.$nonconforming_named_backreference, ],
+		//[ $.named_backreference, $.$nonconforming_named_backreference, ],
 		
-		[ $.anonymous_capturing_group, ],
+		//[ $.anonymous_capturing_group, ],
 		
 		[ $.character_set, $.character_range, ],
 	],
@@ -62,10 +62,8 @@ module.exports = grammar({
 		$.$quantifier,
 		
 		$.$backreference,
-		$.$named_backreference_prefix,
 		
 		$.$group_or_lookaround,
-		$.$named_capturing_group_identifier_prefix,
 		
 		$.$character_set,
 		
@@ -161,8 +159,8 @@ module.exports = grammar({
 			$.character_class_escape,									// \d \D \s \S \w \W
 			$.$p_character_escape,										// \f \n \r \t \v \c__ \x__ \u__ \0 \00 \000 \0__ \__   nonconforming: \c \x \u
 			$.any_character,											// .
-			alias(/[{}]/, $.non_syntax),
-			alias($._p_non_syntax_character, $.non_syntax),				// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+			alias(/[{}]/, $.character),
+			alias($._p_character, $.character),				// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
 		),
 		
 		
@@ -328,8 +326,8 @@ module.exports = grammar({
 					$.character_range,									// __-__
 					$.character_class_escape,							// \d \D \s \S \w \W
 					$.$s_character_escape,								// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
-					alias($._dash, $.non_syntax),						// -
-					alias($._s_non_syntax_character, $.non_syntax),		// NOT: - \ ] or newline
+					alias($._dash, $.character),						// -
+					alias($._s_character, $.character),		// NOT: - \ ] or newline
 				),
 			),
 			alias(/\]/, $.set_end),
@@ -347,8 +345,8 @@ module.exports = grammar({
 		
 		$character_range_unit: $ => choice(
 			$.$s_character_escape,								// \f \n \r \t \v \b \c__ \x__ \u__ \0 \00 \000 \0__ \__ \c \x \u
-			alias($._dash, $.non_syntax),						// -
-			alias($._s_non_syntax_character, $.non_syntax),		// NOT: - \ ] or newline
+			alias($._dash, $.character),						// -
+			alias($._s_character, $.character),		// NOT: - \ ] or newline
 		),
 		
 		
@@ -365,7 +363,7 @@ module.exports = grammar({
 		
 		
 		$p_character_escape: $ => prec.left(choice(
-			$.$null_character,
+			alias($.$null_character, $.null_character),
 			alias($.$p_special_escape, $.special_escape),
 			$.control_letter_escape,
 			$.octal_escape,
@@ -377,7 +375,7 @@ module.exports = grammar({
 			alias($.$nonconforming_unicode_escape, $.identity_escape),
 		)),
 		$s_character_escape: $ => choice(
-			$.$null_character,
+			alias($.$null_character, $.null_character),
 			alias($.$s_special_escape, $.special_escape),
 			$.control_letter_escape,
 			$.octal_escape,
@@ -390,7 +388,7 @@ module.exports = grammar({
 		),
 		
 		
-		$null_character: $ => prec(1, $.null_character),
+		$null_character: $ => prec(1, $._null_character),
 		
 		
 		$p_special_escape: $ => seq(
@@ -469,8 +467,8 @@ module.exports = grammar({
 		any_character: $ => /\./,
 		
 		
-		_p_non_syntax_character: $ => /[^\^$\\.*+?()\[\]{}|\/\n]/,	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
-		_s_non_syntax_character: $ => /[^-\\\]\n]/,			// NOT: - \ ] or newline
+		_p_character: $ => /[^\^$\\.*+?()\[\]{}|\/\n]/,	// NOT: ^ $ \ . * + ? ( ) [ ] { } | / or newline
+		_s_character: $ => /[^-\\\]\n]/,			// NOT: - \ ] or newline
 		
 	}
 });

@@ -1,20 +1,5 @@
 [
   {
-    "type": "$null_character",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "null_character",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "anonymous_capturing_group",
     "named": true,
     "fields": {},
@@ -22,10 +7,6 @@
       "multiple": true,
       "required": true,
       "types": [
-        {
-          "type": "$null_character",
-          "named": true
-        },
         {
           "type": "anonymous_capturing_group",
           "named": true
@@ -36,6 +17,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -115,7 +100,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -167,7 +152,7 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
+          "type": "character",
           "named": true
         },
         {
@@ -191,7 +176,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -235,7 +220,7 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
+          "type": "character",
           "named": true
         },
         {
@@ -251,7 +236,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -369,10 +354,6 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
-          "named": true
-        },
-        {
           "type": "anonymous_capturing_group",
           "named": true
         },
@@ -382,6 +363,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -465,7 +450,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -512,10 +497,6 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
-          "named": true
-        },
-        {
           "type": "anonymous_capturing_group",
           "named": true
         },
@@ -525,6 +506,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -608,7 +593,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -670,10 +655,6 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
-          "named": true
-        },
-        {
           "type": "anonymous_capturing_group",
           "named": true
         },
@@ -683,6 +664,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -766,7 +751,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -828,10 +813,6 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
-          "named": true
-        },
-        {
           "type": "anonymous_capturing_group",
           "named": true
         },
@@ -841,6 +822,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -924,7 +909,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -971,10 +956,6 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
-          "named": true
-        },
-        {
           "type": "anonymous_capturing_group",
           "named": true
         },
@@ -984,6 +965,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -1067,7 +1052,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -1119,10 +1104,6 @@
       "required": true,
       "types": [
         {
-          "type": "$null_character",
-          "named": true
-        },
-        {
           "type": "anonymous_capturing_group",
           "named": true
         },
@@ -1132,6 +1113,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -1215,7 +1200,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -1252,6 +1237,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "null_character",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "numeric_backreference",
@@ -1321,10 +1311,6 @@
       "required": false,
       "types": [
         {
-          "type": "$null_character",
-          "named": true
-        },
-        {
           "type": "anonymous_capturing_group",
           "named": true
         },
@@ -1334,6 +1320,10 @@
         },
         {
           "type": "boundary_assertion",
+          "named": true
+        },
+        {
+          "type": "character",
           "named": true
         },
         {
@@ -1405,7 +1395,7 @@
           "named": true
         },
         {
-          "type": "non_syntax",
+          "type": "null_character",
           "named": true
         },
         {
@@ -1492,6 +1482,10 @@
     "named": true
   },
   {
+    "type": "character",
+    "named": true
+  },
+  {
     "type": "control_letter_code",
     "named": true
   },
@@ -1553,14 +1547,6 @@
   },
   {
     "type": "non_capturing_group_identifier",
-    "named": true
-  },
-  {
-    "type": "non_syntax",
-    "named": true
-  },
-  {
-    "type": "null_character",
     "named": true
   },
   {

@@ -5,11 +5,11 @@
       "name": "regex_js",
       "camelcase": "RegexJS",
       "title": "JavaScript Regular Expressions",
-      "scope": "source.regex_js",
+      "scope": "source.regex-js",
       "file-types": [
         "regex_js"
       ],
-      "injection-regex": "^regex_js$",
+      "injection-regex": "^regex[_-]js$",
       "class-name": "TreeSitterRegexJs"
     }
   ],
